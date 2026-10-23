@@ -9,6 +9,7 @@
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen font-sans">
 
+  <!-- PIN 碼解鎖視窗 -->
   <div id="pin-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4">
       <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl">
@@ -21,6 +22,7 @@
     </div>
   </div>
 
+  <!-- 後台主頁面 -->
   <div id="admin-content" class="hidden min-h-screen flex flex-col">
     <header class="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-40">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -49,6 +51,7 @@
         </button>
       </div>
 
+      <!-- 商品管理區 -->
       <section id="panel-products" class="space-y-4">
         <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <h2 class="text-base font-bold text-gray-800">特惠商品列表</h2>
@@ -57,6 +60,7 @@
             <button onclick="openProductModal()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增商品</button>
           </div>
         </div>
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
@@ -67,6 +71,7 @@
         </div>
       </section>
 
+      <!-- 優惠碼管理區 -->
       <section id="panel-codes" class="hidden space-y-4">
         <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <h2 class="text-base font-bold text-gray-800">全站優惠碼列表</h2>
@@ -75,6 +80,7 @@
             <button onclick="openCodeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增優惠碼</button>
           </div>
         </div>
+
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
@@ -87,6 +93,7 @@
     </main>
   </div>
 
+  <!-- 新增商品 Modal -->
   <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
       <h3 class="text-base font-bold text-gray-900">新增商品</h3>
@@ -114,6 +121,7 @@
     </div>
   </div>
 
+  <!-- 新增優惠碼 Modal -->
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <h3 class="text-base font-bold text-gray-900">新增全站優惠碼</h3>
@@ -133,6 +141,10 @@
   </div>
 
   <script>
+    function getAdminPassword() {
+      return localStorage.getItem('yves_admin_pin') || '520490';
+    }
+
     async function initAdminData() {
       try {
         const res = await fetch('./data.json?t=' + Date.now());
@@ -144,12 +156,16 @@
     }
 
     function verifyPIN() {
-      if (document.getElementById('pin-input').value === ' 0490 ') {
+      const rawInput = document.getElementById('pin-input').value;
+      const cleanedInput = rawInput.replace(/\s+/g, '');
+      const storedPin = getAdminPassword().replace(/\s+/g, '');
+
+      if (cleanedInput === storedPin) {
         document.getElementById('pin-modal').classList.add('hidden');
         document.getElementById('admin-content').classList.remove('hidden');
         initAdminData();
       } else {
-        alert('❌ 密碼錯誤 );
+        alert('❌ 密碼錯誤！');
       }
     }
 
