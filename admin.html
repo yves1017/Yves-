@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yves 嚴選特惠 - 後台管理控制台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen font-sans">
+
+  <div id="pin-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <h2 class="text-lg font-black text-gray-900">進入管理控制台</h2>
+      <p class="text-xs text-gray-500">請輸入管理員 PIN 碼</p>
+      <input type="password" id="pin-input" placeholder="請輸入密碼" class="w-full text-center tracking-widest text-lg font-bold py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+      <button onclick="verifyPIN()" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm transition-all shadow-md">解鎖進入</button>
+    </div>
+  </div>
+
+  <div id="admin-content" class="hidden min-h-screen flex flex-col">
+    <header class="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="px-2.5 py-1 bg-orange-600 text-white rounded-lg text-xs font-black">ADMIN</span>
+          <h1 class="text-base font-bold">Yves 特惠後台管理系統</h1>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="copyExportJSON()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
+            <i class="fa-solid fa-copy"></i> 複製最新 JSON 數據
+          </button>
+          <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1.5">
+            <i class="fa-solid fa-eye"></i> 開啟前台預覽
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div class="flex border-b border-gray-200 bg-white rounded-t-2xl px-4 pt-3 gap-2">
+        <button onclick="switchTab('products')" id="btn-tab-products" class="px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2">
+          <i class="fa-solid fa-box-open"></i> 商品管理
+        </button>
+        <button onclick="switchTab('codes')" id="btn-tab-codes" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2">
+          <i class="fa-solid fa-ticket"></i> 全站優惠碼管理
+        </button>
+      </div>
+
+      <section id="panel-products" class="space-y-4">
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <h2 class="text-base font-bold text-gray-800">特惠商品列表</h2>
+          <div class="flex gap-2">
+            <button onclick="clearAllProducts()" class="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-xs rounded-xl transition-all">清空全部商品</button>
+            <button onclick="openProductModal()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增商品</button>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
+              <tr><th class="p-3.5">商品圖/名稱</th><th class="p-3.5">平台</th><th class="p-3.5">特惠價 / 原價</th><th class="p-3.5">券碼</th><th class="p-3.5 text-center">操作</th></tr>
+            </thead>
+            <tbody id="product-table-body" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="panel-codes" class="hidden space-y-4">
+        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <h2 class="text-base font-bold text-gray-800">全站優惠碼列表</h2>
+          <div class="flex gap-2">
+            <button onclick="clearAllCodes()" class="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-xs rounded-xl transition-all">清空全部優惠碼</button>
+            <button onclick="openCodeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增優惠碼</button>
+          </div>
+        </div>
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
+              <tr><th class="p-3.5">優惠碼</th><th class="p-3.5">平台</th><th class="p-3.5">說明</th><th class="p-3.5 text-center">狀態</th><th class="p-3.5 text-center">操作</th></tr>
+            </thead>
+            <tbody id="code-table-body" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-gray-900">新增商品</h3>
+      <div class="space-y-3 text-xs">
+        <input type="text" id="pm-name" placeholder="商品名稱" class="w-full p-2 border border-gray-300 rounded-lg">
+        <div class="grid grid-cols-2 gap-3">
+          <select id="pm-platform" class="p-2 border border-gray-300 rounded-lg">
+            <option value="SHOPEE">蝦皮 Shopee</option>
+            <option value="COUPANG">酷澎 Coupang</option>
+          </select>
+          <input type="text" id="pm-category" placeholder="分類 (例如: 美食零食)" class="p-2 border border-gray-300 rounded-lg">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <input type="number" id="pm-orig" placeholder="原價" class="p-2 border border-gray-300 rounded-lg">
+          <input type="number" id="pm-promo" placeholder="特惠價" class="p-2 border border-gray-300 rounded-lg">
+        </div>
+        <input type="text" id="pm-image" placeholder="圖片網址 (URL)" class="w-full p-2 border border-gray-300 rounded-lg">
+        <input type="text" id="pm-link" placeholder="分潤連結 (URL)" class="w-full p-2 border border-gray-300 rounded-lg">
+        <input type="text" id="pm-code" placeholder="特定優惠碼 (選填)" class="w-full p-2 border border-gray-300 rounded-lg">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeProductModal()" class="px-4 py-2 bg-gray-100 rounded-lg text-xs">取消</button>
+        <button onclick="saveProduct()" class="px-4 py-2 bg-orange-500 text-white font-bold rounded-lg text-xs">儲存商品</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
+      <h3 class="text-base font-bold text-gray-900">新增全站優惠碼</h3>
+      <div class="space-y-3 text-xs">
+        <input type="text" id="cm-code" placeholder="優惠碼 (如: SHOPEE100)" class="w-full p-2 border border-gray-300 rounded-lg font-mono uppercase">
+        <select id="cm-platform" class="w-full p-2 border border-gray-300 rounded-lg">
+          <option value="SHOPEE">蝦皮 Shopee</option>
+          <option value="COUPANG">酷澎 Coupang</option>
+        </select>
+        <input type="text" id="cm-desc" placeholder="說明 (如: 滿 $499 折 $50)" class="w-full p-2 border border-gray-300 rounded-lg">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeCodeModal()" class="px-4 py-2 bg-gray-100 rounded-lg text-xs">取消</button>
+        <button onclick="saveCode()" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs">儲存優惠碼</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function initAdminData() {
+      try {
+        const res = await fetch('./data.json?t=' + Date.now());
+        const json = await res.json();
+        if (!localStorage.getItem('yves_products')) localStorage.setItem('yves_products', JSON.stringify(json.products || []));
+        if (!localStorage.getItem('yves_codes')) localStorage.setItem('yves_codes', JSON.stringify(json.codes || []));
+      } catch (e) {}
+      renderAdminTables();
+    }
+
+    function verifyPIN() {
+      if (document.getElementById('pin-input').value === '1234') {
+        document.getElementById('pin-modal').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+        initAdminData();
+      } else {
+        alert('❌ 密碼錯誤！預設為 1234');
+      }
+    }
+
+    function copyExportJSON() {
+      const data = getData();
+      const jsonStr = JSON.stringify(data, null, 2);
+      navigator.clipboard.writeText(jsonStr);
+      alert('✅ 已複製最新的 JSON 數據！請前往 GitHub 開啟 data.json 貼上並存檔即可更新前台網頁。');
+    }
+
+    function switchTab(tab) {
+      document.getElementById('panel-products').classList.toggle('hidden', tab !== 'products');
+      document.getElementById('panel-codes').classList.toggle('hidden', tab !== 'codes');
+    }
+
+    function getData() {
+      return {
+        products: JSON.parse(localStorage.getItem('yves_products')) || [],
+        codes: JSON.parse(localStorage.getItem('yves_codes')) || []
+      };
+    }
+
+    function saveData(products, codes) {
+      if (products !== undefined) localStorage.setItem('yves_products', JSON.stringify(products));
+      if (codes !== undefined) localStorage.setItem('yves_codes', JSON.stringify(codes));
+      renderAdminTables();
+    }
+
+    function renderAdminTables() {
+      const { products, codes } = getData();
+      const pTbody = document.getElementById('product-table-body');
+      pTbody.innerHTML = products.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">目前無任何商品</td></tr>` : products.map(p => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-3.5 flex items-center gap-3">
+            <img src="${p.image}" class="w-10 h-10 rounded-lg object-cover">
+            <div><p class="font-bold text-gray-800 line-clamp-1">${p.name}</p><span class="text-[10px] text-gray-400">${p.category}</span></div>
+          </td>
+          <td class="p-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${p.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${p.platform}</span></td>
+          <td class="p-3.5 font-bold text-red-600">NT$ ${p.promoPrice} <span class="text-gray-400 line-through font-normal text-[11px]">NT$ ${p.originalPrice}</span></td>
+          <td class="p-3.5 font-mono text-xs">${p.code || '-'}</td>
+          <td class="p-3.5 text-center"><button onclick="deleteProduct(${p.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+      `).join('');
+
+      const cTbody = document.getElementById('code-table-body');
+      cTbody.innerHTML = codes.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">目前無任何優惠碼</td></tr>` : codes.map(c => `
+        <tr class="hover:bg-gray-50">
+          <td class="p-3.5 font-mono font-bold text-gray-800">${c.code}</td>
+          <td class="p-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${c.platform}</span></td>
+          <td class="p-3.5 text-gray-700">${c.desc}</td>
+          <td class="p-3.5 text-center">
+            <button onclick="toggleCodeStatus(${c.id})" class="px-2 py-1 rounded text-[10px] font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用中' : '已停用'}</button>
+          </td>
+          <td class="p-3.5 text-center"><button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button></td>
+        </tr>
+      `).join('');
+    }
+
+    function openProductModal() { document.getElementById('product-modal').classList.remove('hidden'); }
+    function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+    function saveProduct() {
+      const { products, codes } = getData();
+      products.unshift({
+        id: Date.now(),
+        name: document.getElementById('pm-name').value || '未命名商品',
+        platform: document.getElementById('pm-platform').value,
+        category: document.getElementById('pm-category').value || '未分類',
+        originalPrice: Number(document.getElementById('pm-orig').value) || 0,
+        promoPrice: Number(document.getElementById('pm-promo').value) || 0,
+        image: document.getElementById('pm-image').value || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80',
+        link: document.getElementById('pm-link').value || 'https://shopee.tw',
+        code: document.getElementById('pm-code').value
+      });
+      saveData(products, codes);
+      closeProductModal();
+    }
+    function deleteProduct(id) {
+      const { products, codes } = getData();
+      saveData(products.filter(p => p.id !== id), codes);
+    }
+    function clearAllProducts() {
+      if (confirm('確定清空所有商品嗎？')) saveData([], getData().codes);
+    }
+
+    function openCodeModal() { document.getElementById('code-modal').classList.remove('hidden'); }
+    function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
+    function saveCode() {
+      const { products, codes } = getData();
+      codes.unshift({
+        id: Date.now(),
+        code: document.getElementById('cm-code').value.toUpperCase(),
+        platform: document.getElementById('cm-platform').value,
+        desc: document.getElementById('cm-desc').value || '全館優惠',
+        active: true
+      });
+      saveData(products, codes);
+      closeCodeModal();
+    }
+    function toggleCodeStatus(id) {
+      const { products, codes } = getData();
+      const c = codes.find(x => x.id === id);
+      if (c) c.active = !c.active;
+      saveData(products, codes);
+    }
+    function deleteCode(id) {
+      const { products, codes } = getData();
+      saveData(products, codes.filter(c => c.id !== id));
+    }
+    function clearAllCodes() {
+      if (confirm('確定清空所有優惠碼嗎？')) saveData(getData().products, []);
+    }
+  </script>
+</body>
+</html>

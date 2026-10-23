@@ -1,0 +1,30 @@
+{
+  "products": [
+    {
+      "id": 1,
+      "name": "日本京都 Marukyu Koyamaen 宇治抹茶粉 100g",
+      "platform": "SHOPEE",
+      "originalPrice": 650,
+      "promoPrice": 480,
+      "category": "美食零食",
+      "image": "https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=600&q=80",
+      "link": "https://shopee.tw",
+      "code": "MATCHA100"
+    },
+    {
+      "id": 2,
+      "name": "韓國熱銷 喀滋堅果零食包 (腰果/杏仁) 12入",
+      "platform": "COUPANG",
+      "originalPrice": 420,
+      "promoPrice": 299,
+      "category": "美食零食",
+      "image": "https://images.unsplash.com/photo-1599599810769-bcde5a160d32?auto=format&fit=crop&w=600&q=80",
+      "link": "https://coupang.com",
+      "code": "CPNUT50"
+    }
+  ],
+  "codes": [
+    { "id": 1, "code": "SHOPEE2026", "platform": "SHOPEE", "desc": "滿 $499 折 $50", "active": true },
+    { "id": 2, "code": "CPNEW88", "platform": "COUPANG", "desc": "首購用戶享 88 折", active: true }
+  ]
+}
