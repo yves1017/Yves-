@@ -6,6 +6,10 @@
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- 引入 Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen font-sans">
 
@@ -22,7 +26,6 @@
     </div>
   </div>
 
-  <!-- 後台主頁面 -->
   <div id="admin-content" class="hidden min-h-screen flex flex-col">
     <header class="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-40">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -30,28 +33,22 @@
           <span class="px-2.5 py-1 bg-orange-600 text-white rounded-lg text-xs font-black">ADMIN</span>
           <h1 class="text-base font-bold">Yves 特惠後台管理系統</h1>
         </div>
-        <div class="flex items-center gap-2">
-          <button onclick="copyExportJSON()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition-all shadow flex items-center gap-1.5">
-            <i class="fa-solid fa-copy"></i> 複製最新 JSON 數據
-          </button>
-          <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1.5">
-            <i class="fa-solid fa-eye"></i> 開啟前台預覽
-          </a>
-        </div>
+        <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1.5">
+          <i class="fa-solid fa-eye"></i> 開啟前台預覽
+        </a>
       </div>
     </header>
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div class="flex border-b border-gray-200 bg-white rounded-t-2xl px-4 pt-3 gap-2">
-        <button onclick="switchTab('products')" id="btn-tab-products" class="px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2">
+        <button onclick="switchTab('products')" id="btn-tab-products" class="px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-all">
           <i class="fa-solid fa-box-open"></i> 商品管理
         </button>
-        <button onclick="switchTab('codes')" id="btn-tab-codes" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2">
+        <button onclick="switchTab('codes')" id="btn-tab-codes" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-all">
           <i class="fa-solid fa-ticket"></i> 全站優惠碼管理
         </button>
       </div>
 
-      <!-- 商品管理區 -->
       <section id="panel-products" class="space-y-4">
         <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <h2 class="text-base font-bold text-gray-800">特惠商品列表</h2>
@@ -60,7 +57,6 @@
             <button onclick="openProductModal()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增商品</button>
           </div>
         </div>
-
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
@@ -71,7 +67,6 @@
         </div>
       </section>
 
-      <!-- 優惠碼管理區 -->
       <section id="panel-codes" class="hidden space-y-4">
         <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <h2 class="text-base font-bold text-gray-800">全站優惠碼列表</h2>
@@ -80,7 +75,6 @@
             <button onclick="openCodeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增優惠碼</button>
           </div>
         </div>
-
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
@@ -93,10 +87,10 @@
     </main>
   </div>
 
-  <!-- 新增商品 Modal -->
   <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-      <h3 class="text-base font-bold text-gray-900">新增商品</h3>
+      <h3 id="pm-title" class="text-base font-bold text-gray-900">新增商品</h3>
+      <input type="hidden" id="pm-id">
       <div class="space-y-3 text-xs">
         <input type="text" id="pm-name" placeholder="商品名稱" class="w-full p-2 border border-gray-300 rounded-lg">
         <div class="grid grid-cols-2 gap-3">
@@ -121,7 +115,6 @@
     </div>
   </div>
 
-  <!-- 新增優惠碼 Modal -->
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <h3 class="text-base font-bold text-gray-900">新增全站優惠碼</h3>
@@ -141,63 +134,72 @@
   </div>
 
   <script>
-    function getAdminPassword() {
-      return localStorage.getItem('yves_admin_pin') || '520490';
-    }
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcI0OjXhHwOMsr_HhubzfLlVf_9wVcERI",
+      authDomain: "shopee-da43f.firebaseapp.com",
+      databaseURL: "https://shopee-da43f-default-rtdb.firebaseio.com",
+      projectId: "shopee-da43f",
+      storageBucket: "shopee-da43f.firebasestorage.app",
+      messagingSenderId: "669756265345",
+      appId: "1:669756265345:web:b55f67923b1b81687f0e80",
+      measurementId: "G-Z8SZ67GGTC"
+    };
 
-    async function initAdminData() {
-      try {
-        const res = await fetch('./data.json?t=' + Date.now());
-        const json = await res.json();
-        if (!localStorage.getItem('yves_products')) localStorage.setItem('yves_products', JSON.stringify(json.products || []));
-        if (!localStorage.getItem('yves_codes')) localStorage.setItem('yves_codes', JSON.stringify(json.codes || []));
-      } catch (e) {}
-      renderAdminTables();
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let productsList = [];
+    let codesList = [];
 
     function verifyPIN() {
       const rawInput = document.getElementById('pin-input').value;
-      const cleanedInput = rawInput.replace(/\s+/g, '');
-      const storedPin = getAdminPassword().replace(/\s+/g, '');
-
-      if (cleanedInput === storedPin) {
+      if (rawInput.replace(/\s+/g, '') === '520490') {
         document.getElementById('pin-modal').classList.add('hidden');
         document.getElementById('admin-content').classList.remove('hidden');
-        initAdminData();
+        initRealtimeSync();
       } else {
         alert('❌ 密碼錯誤！');
       }
     }
 
-    function copyExportJSON() {
-      const data = getData();
-      const jsonStr = JSON.stringify(data, null, 2);
-      navigator.clipboard.writeText(jsonStr);
-      alert('✅ 已複製最新的 JSON 數據！請前往 GitHub 開啟 data.json 貼上並存檔即可更新前台網頁。');
+    function initRealtimeSync() {
+      db.ref('yves_shop_data').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          productsList = val.products || [];
+          codesList = val.codes || [];
+        } else {
+          productsList = [];
+          codesList = [];
+        }
+        renderAdminTables();
+      });
+    }
+
+    function pushToFirebase() {
+      db.ref('yves_shop_data').set({
+        products: productsList,
+        codes: codesList
+      });
     }
 
     function switchTab(tab) {
       document.getElementById('panel-products').classList.toggle('hidden', tab !== 'products');
       document.getElementById('panel-codes').classList.toggle('hidden', tab !== 'codes');
-    }
-
-    function getData() {
-      return {
-        products: JSON.parse(localStorage.getItem('yves_products')) || [],
-        codes: JSON.parse(localStorage.getItem('yves_codes')) || []
-      };
-    }
-
-    function saveData(products, codes) {
-      if (products !== undefined) localStorage.setItem('yves_products', JSON.stringify(products));
-      if (codes !== undefined) localStorage.setItem('yves_codes', JSON.stringify(codes));
-      renderAdminTables();
+      const btnP = document.getElementById('btn-tab-products');
+      const btnC = document.getElementById('btn-tab-codes');
+      if (tab === 'products') {
+        btnP.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-all";
+        btnC.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-all";
+      } else {
+        btnC.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-all";
+        btnP.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-all";
+      }
     }
 
     function renderAdminTables() {
-      const { products, codes } = getData();
       const pTbody = document.getElementById('product-table-body');
-      pTbody.innerHTML = products.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">目前無任何商品</td></tr>` : products.map(p => `
+      pTbody.innerHTML = productsList.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">目前無任何商品</td></tr>` : productsList.map(p => `
         <tr class="hover:bg-gray-50">
           <td class="p-3.5 flex items-center gap-3">
             <img src="${p.image}" class="w-10 h-10 rounded-lg object-cover">
@@ -206,12 +208,15 @@
           <td class="p-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${p.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${p.platform}</span></td>
           <td class="p-3.5 font-bold text-red-600">NT$ ${p.promoPrice} <span class="text-gray-400 line-through font-normal text-[11px]">NT$ ${p.originalPrice}</span></td>
           <td class="p-3.5 font-mono text-xs">${p.code || '-'}</td>
-          <td class="p-3.5 text-center"><button onclick="deleteProduct(${p.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button></td>
+          <td class="p-3.5 text-center flex justify-center gap-2">
+            <button onclick="editProduct(${p.id})" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteProduct(${p.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+          </td>
         </tr>
       `).join('');
 
       const cTbody = document.getElementById('code-table-body');
-      cTbody.innerHTML = codes.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">目前無任何優惠碼</td></tr>` : codes.map(c => `
+      cTbody.innerHTML = codesList.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">目前無任何優惠碼</td></tr>` : codesList.map(c => `
         <tr class="hover:bg-gray-50">
           <td class="p-3.5 font-mono font-bold text-gray-800">${c.code}</td>
           <td class="p-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${c.platform}</span></td>
@@ -224,12 +229,42 @@
       `).join('');
     }
 
-    function openProductModal() { document.getElementById('product-modal').classList.remove('hidden'); }
+    function openProductModal() {
+      document.getElementById('pm-title').innerText = '新增商品';
+      document.getElementById('pm-id').value = '';
+      document.getElementById('pm-name').value = '';
+      document.getElementById('pm-platform').value = 'SHOPEE';
+      document.getElementById('pm-category').value = '';
+      document.getElementById('pm-orig').value = '';
+      document.getElementById('pm-promo').value = '';
+      document.getElementById('pm-image').value = '';
+      document.getElementById('pm-link').value = '';
+      document.getElementById('pm-code').value = '';
+      document.getElementById('product-modal').classList.remove('hidden');
+    }
+
+    function editProduct(id) {
+      const p = productsList.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('pm-title').innerText = '編輯商品';
+      document.getElementById('pm-id').value = p.id;
+      document.getElementById('pm-name').value = p.name;
+      document.getElementById('pm-platform').value = p.platform;
+      document.getElementById('pm-category').value = p.category;
+      document.getElementById('pm-orig').value = p.originalPrice;
+      document.getElementById('pm-promo').value = p.promoPrice;
+      document.getElementById('pm-image').value = p.image;
+      document.getElementById('pm-link').value = p.link;
+      document.getElementById('pm-code').value = p.code || '';
+      document.getElementById('product-modal').classList.remove('hidden');
+    }
+
     function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+    
     function saveProduct() {
-      const { products, codes } = getData();
-      products.unshift({
-        id: Date.now(),
+      const editId = document.getElementById('pm-id').value;
+      const productData = {
+        id: editId ? Number(editId) : Date.now(),
         name: document.getElementById('pm-name').value || '未命名商品',
         platform: document.getElementById('pm-platform').value,
         category: document.getElementById('pm-category').value || '未分類',
@@ -238,44 +273,62 @@
         image: document.getElementById('pm-image').value || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80',
         link: document.getElementById('pm-link').value || 'https://shopee.tw',
         code: document.getElementById('pm-code').value
-      });
-      saveData(products, codes);
+      };
+
+      if (editId) {
+        const idx = productsList.findIndex(x => x.id === Number(editId));
+        if (idx !== -1) productsList[idx] = productData;
+      } else {
+        productsList.unshift(productData);
+      }
+
+      pushToFirebase();
       closeProductModal();
     }
+
     function deleteProduct(id) {
-      const { products, codes } = getData();
-      saveData(products.filter(p => p.id !== id), codes);
+      productsList = productsList.filter(p => p.id !== id);
+      pushToFirebase();
     }
+
     function clearAllProducts() {
-      if (confirm('確定清空所有商品嗎？')) saveData([], getData().codes);
+      if (confirm('確定清空所有商品嗎？')) {
+        productsList = [];
+        pushToFirebase();
+      }
     }
 
     function openCodeModal() { document.getElementById('code-modal').classList.remove('hidden'); }
     function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
+    
     function saveCode() {
-      const { products, codes } = getData();
-      codes.unshift({
+      codesList.unshift({
         id: Date.now(),
         code: document.getElementById('cm-code').value.toUpperCase(),
         platform: document.getElementById('cm-platform').value,
         desc: document.getElementById('cm-desc').value || '全館優惠',
         active: true
       });
-      saveData(products, codes);
+      pushToFirebase();
       closeCodeModal();
     }
+
     function toggleCodeStatus(id) {
-      const { products, codes } = getData();
-      const c = codes.find(x => x.id === id);
+      const c = codesList.find(x => x.id === id);
       if (c) c.active = !c.active;
-      saveData(products, codes);
+      pushToFirebase();
     }
+
     function deleteCode(id) {
-      const { products, codes } = getData();
-      saveData(products, codes.filter(c => c.id !== id));
+      codesList = codesList.filter(c => c.id !== id);
+      pushToFirebase();
     }
+
     function clearAllCodes() {
-      if (confirm('確定清空所有優惠碼嗎？')) saveData(getData().products, []);
+      if (confirm('確定清空所有優惠碼嗎？')) {
+        codesList = [];
+        pushToFirebase();
+      }
     }
   </script>
 </body>
