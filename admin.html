@@ -87,6 +87,7 @@
     </main>
   </div>
 
+  <!-- 商品彈窗 -->
   <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
       <h3 id="pm-title" class="text-base font-bold text-gray-900">新增商品</h3>
@@ -115,6 +116,7 @@
     </div>
   </div>
 
+  <!-- 優惠碼彈窗 -->
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
       <h3 class="text-base font-bold text-gray-900">新增全站優惠碼</h3>
@@ -176,6 +178,7 @@
       });
     }
 
+    // 將異動強制推送到 Firebase 雲端永久儲存
     function pushToFirebase() {
       db.ref('yves_shop_data').set({
         products: productsList,
