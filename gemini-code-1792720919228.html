@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yves 嚴選特惠 - 蝦皮/酷澎 精選好康</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            shopee: { DEFAULT: '#FF5722', dark: '#E64A19', light: '#FFF3E0' },
+            coupang: { DEFAULT: '#007AFF', dark: '#0056B3', light: '#E3F2FD' }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans">
+
+  <!-- 頂部導航列 -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 via-red-500 to-blue-600 flex items-center justify-center text-white font-black text-xl shadow-md">
+            Y
+          </div>
+          <div>
+            <h1 class="text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
+            <p class="text-xs text-gray-400 font-medium hidden sm:block">蝦皮 Shopee × 酷澎 Coupang 每日最新限時好康</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> 即時同步中
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 全站最新優惠券輪播區 -->
+  <section class="bg-gradient-to-r from-orange-600 via-rose-600 to-blue-700 text-white py-6 shadow-inner">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-sm sm:text-base font-bold flex items-center gap-2">
+          <i class="fa-solid fa-ticket text-yellow-300"></i> 本日全站獨家優惠碼
+        </h2>
+        <span class="text-xs text-orange-100">點擊代碼即可快速複製</span>
+      </div>
+      <div id="promo-codes-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+        <!-- 動態渲染優惠碼 -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 主要內容區 -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- 篩選器與搜尋 -->
+    <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 mb-8 space-y-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- 平台切換 TAB -->
+        <div class="flex p-1 bg-gray-100 rounded-xl max-w-md w-full">
+          <button onclick="setPlatform('ALL')" id="tab-ALL" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-800">全部平台</button>
+          <button onclick="setPlatform('SHOPEE')" id="tab-SHOPEE" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-orange-600">蝦皮 Shopee</button>
+          <button onclick="setPlatform('COUPANG')" id="tab-COUPANG" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-blue-600">酷澎 Coupang</button>
+        </div>
+
+        <!-- 關鍵字搜尋框 -->
+        <div class="relative flex-grow max-w-md">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input type="text" id="search-input" oninput="renderStorefront()" placeholder="搜尋商品名稱、關鍵字..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all">
+        </div>
+      </div>
+    </div>
+
+    <!-- 商品卡片列表區 -->
+    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+      <!-- 動態渲染商品卡片 -->
+    </div>
+  </main>
+
+  <footer class="bg-gray-900 text-gray-400 py-8 text-center text-xs border-t border-gray-800">
+    <p>© 2026 Yves 嚴選特惠 | 導購連結與優惠即時更新</p>
+  </footer>
+
+  <script>
+    let currentPlatform = 'ALL';
+    // 建立跨跨頁面廣播頻道
+    const syncChannel = new BroadcastChannel('yves_data_sync');
+
+    function getStoredData() {
+      // 若為空陣列就保持空陣列，不再自動強制復原預設值，確保「刪光」操作生效
+      const products = JSON.parse(localStorage.getItem('yves_products')) || [];
+      const codes = JSON.parse(localStorage.getItem('yves_codes')) || [];
+      return { products, codes };
+    }
+
+    function setPlatform(platform) {
+      currentPlatform = platform;
+      ['ALL', 'SHOPEE', 'COUPANG'].forEach(p => {
+        const btn = document.getElementById(`tab-${p}`);
+        if (p === platform) {
+          btn.className = "flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-800";
+        } else {
+          btn.className = "flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-900";
+        }
+      });
+      renderStorefront();
+    }
+
+    function renderStorefront() {
+      const { products, codes } = getStoredData();
+      const searchKeyword = document.getElementById('search-input').value.toLowerCase().trim();
+
+      // 1. 渲染優惠碼（如果刪光了顯示提示）
+      const promoContainer = document.getElementById('promo-codes-container');
+      const activeCodes = codes.filter(c => c.active);
+      if (activeCodes.length === 0) {
+        promoContainer.innerHTML = `<div class="col-span-full text-center py-2 text-xs text-orange-100">目前尚無優惠碼</div>`;
+      } else {
+        promoContainer.innerHTML = activeCodes.map(c => `
+          <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center justify-between text-white">
+            <div>
+              <span class="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded ${c.platform === 'SHOPEE' ? 'bg-orange-500/80' : 'bg-blue-500/80'}">${c.platform}</span>
+              <p class="text-xs font-semibold mt-1">${c.desc}</p>
+            </div>
+            <button onclick="copyCode('${c.code}')" class="px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95">
+              ${c.code} <i class="fa-regular fa-copy ml-1"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // 2. 篩選與渲染商品（如果刪光了顯示提示）
+      const filtered = products.filter(p => {
+        const matchPlatform = currentPlatform === 'ALL' || p.platform === currentPlatform;
+        const matchSearch = p.name.toLowerCase().includes(searchKeyword) || p.category.toLowerCase().includes(searchKeyword);
+        return matchPlatform && matchSearch;
+      });
+
+      const grid = document.getElementById('product-grid');
+      if (filtered.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-16 text-center text-gray-400"><i class="fa-solid fa-box-open text-4xl mb-3"></i><p>尚無任何特惠商品（或找不到符合條件的商品）</p></div>`;
+        return;
+      }
+
+      grid.innerHTML = filtered.map(p => {
+        const discount = Math.round((1 - p.promoPrice / p.originalPrice) * 100);
+        const isShopee = p.platform === 'SHOPEE';
+        return `
+          <div class="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between">
+            <div class="relative aspect-square overflow-hidden bg-gray-100">
+              <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+              <span class="absolute top-2 left-2 px-2.5 py-1 rounded-lg text-[10px] font-black text-white shadow-md ${isShopee ? 'bg-orange-600' : 'bg-blue-600'}">
+                ${isShopee ? '蝦皮 Shopee' : '酷澎 Coupang'}
+              </span>
+              ${discount > 0 ? `<span class="absolute top-2 right-2 px-2 py-1 rounded-lg text-[10px] font-black bg-red-600 text-white shadow-md">-${discount}%</span>` : ''}
+            </div>
+
+            <div class="p-4 flex-grow flex flex-col justify-between space-y-3">
+              <div>
+                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">${p.category}</span>
+                <h3 class="text-xs sm:text-sm font-bold text-gray-800 line-clamp-2 mt-1 group-hover:text-orange-600 transition-colors">${p.name}</h3>
+              </div>
+
+              <div>
+                <div class="flex items-baseline gap-2">
+                  <span class="text-base sm:text-lg font-black text-red-600">NT$ ${p.promoPrice}</span>
+                  <span class="text-xs text-gray-400 line-through">NT$ ${p.originalPrice}</span>
+                </div>
+
+                ${p.code ? `
+                  <div class="mt-2 text-[11px] bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-200 flex justify-between items-center">
+                    <span>券碼: <strong>${p.code}</strong></span>
+                    <button onclick="copyCode('${p.code}')" class="text-orange-600 font-bold hover:underline">複製</button>
+                  </div>
+                ` : ''}
+
+                <a href="${p.link}" target="_blank" class="mt-3 w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm ${isShopee ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}">
+                  前往領券購買 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copyCode(code) {
+      navigator.clipboard.writeText(code);
+      alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
+    }
+
+    // 接收來自 BroadcastChannel 的即時廣播訊號
+    syncChannel.onmessage = (event) => {
+      if (event.data === 'UPDATE') {
+        renderStorefront();
+      }
+    };
+
+    // 備用 localStorage 事件監聽
+    window.addEventListener('storage', renderStorefront);
+
+    // 首次初始化
+    renderStorefront();
+  </script>
+</body>
+</html>
