@@ -9,7 +9,7 @@
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
   <!-- 網頁頁籤圖示 (Favicon) -->
-  <link rel="icon" type="image/png" href="./favicon.png?v=6">
+  <link rel="icon" type="image/png" href="./favicon.png?v=7">
 
   <!-- SEO 標籤 -->
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
@@ -24,20 +24,19 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
   <style>
-    /* 隱藏手機橫向滑動條 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans selection:bg-orange-100">
 
-  <!-- 頂部導覽列 (手機版防遮擋 Sticky) -->
+  <!-- 頂部導覽列 -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=6" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=7" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -67,7 +66,7 @@
     <!-- 搜尋與平台/分類篩選面板 -->
     <div class="bg-white rounded-2xl p-3 sm:p-6 shadow-sm border border-gray-100 mb-6 space-y-3">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <!-- 平台分頁切換 (手機大觸控按鈕) -->
+        <!-- 平台分頁切換 -->
         <div class="flex p-1 bg-gray-100 rounded-xl w-full md:max-w-md">
           <button onclick="setPlatform('ALL')" id="tab-ALL" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-800">全部平台</button>
           <button onclick="setPlatform('SHOPEE')" id="tab-SHOPEE" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-orange-600">蝦皮 Shopee</button>
@@ -80,19 +79,14 @@
         </div>
       </div>
 
-      <!-- 分類標籤快速列 (手機順暢橫向滑動) -->
+      <!-- 動態生成分類標籤快速列 -->
       <div class="flex items-center gap-1.5 overflow-x-auto pt-1 pb-1 text-xs no-scrollbar -mx-1 px-1">
         <span class="text-gray-400 font-bold flex-shrink-0 text-[11px]"><i class="fa-solid fa-filter"></i> 分類：</span>
-        <button onclick="setCategory('ALL')" id="cat-ALL" class="px-3 py-1.5 rounded-lg font-bold bg-orange-500 text-white flex-shrink-0 shadow-sm transition-all text-xs">全部</button>
-        <button onclick="setCategory('3C家電')" id="cat-3C家電" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 text-gray-600 flex-shrink-0 transition-all text-xs">3C家電</button>
-        <button onclick="setCategory('美食零食')" id="cat-美食零食" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 text-gray-600 flex-shrink-0 transition-all text-xs">美食零食</button>
-        <button onclick="setCategory('生活用品')" id="cat-生活用品" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 text-gray-600 flex-shrink-0 transition-all text-xs">生活用品</button>
-        <button onclick="setCategory('美妝保養')" id="cat-美妝保養" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 text-gray-600 flex-shrink-0 transition-all text-xs">美妝保養</button>
-        <button onclick="setCategory('流行服飾')" id="cat-流行服飾" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 text-gray-600 flex-shrink-0 transition-all text-xs">流行服飾</button>
+        <div id="category-bar-container" class="flex items-center gap-1.5"></div>
       </div>
     </div>
 
-    <!-- 商品網格 (手機版雙排) -->
+    <!-- 商品網格 -->
     <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
   </main>
 
@@ -145,18 +139,45 @@
 
     function setCategory(cat) {
       currentCategory = cat;
-      ['ALL', '3C家電', '美食零食', '生活用品', '美妝保養', '流行服飾'].forEach(c => {
-        const btn = document.getElementById(`cat-${c}`);
-        if (btn) {
-          btn.className = c === cat
-            ? "px-3 py-1.5 rounded-lg font-bold bg-orange-500 text-white flex-shrink-0 shadow-sm transition-all text-xs"
-            : "px-3 py-1.5 rounded-lg font-bold bg-gray-100 text-gray-600 flex-shrink-0 transition-all text-xs";
-        }
-      });
       renderStorefront();
     }
 
+    function renderCategoryBar() {
+      const catContainer = document.getElementById('category-bar-container');
+      if (!catContainer) return;
+
+      // 自動從現有商品抓取所有出現過的分類（去重複）
+      const existingCategories = Array.from(new Set(
+        (storeData.products || [])
+          .map(p => (p.category || '').trim())
+          .filter(c => c !== '')
+      ));
+
+      let categoriesToDisplay = ['ALL', ...existingCategories];
+      
+      // 若當前選擇的分類已不存在，自動重置為 ALL
+      if (!categoriesToDisplay.includes(currentCategory)) {
+        currentCategory = 'ALL';
+      }
+
+      catContainer.innerHTML = categoriesToDisplay.map(cat => {
+        const isActive = cat === currentCategory;
+        const displayName = cat === 'ALL' ? '全部' : cat;
+        return `
+          <button onclick="setCategory('${cat}')" class="px-3 py-1.5 rounded-lg font-bold flex-shrink-0 transition-all text-xs ${
+            isActive 
+              ? 'bg-orange-500 text-white shadow-sm' 
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+          }">
+            ${displayName}
+          </button>
+        `;
+      }).join('');
+    }
+
     function renderStorefront() {
+      renderCategoryBar();
+
       const searchInput = document.getElementById('search-input');
       const searchKeyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
       const promoContainer = document.getElementById('promo-codes-container');
@@ -187,7 +208,7 @@
 
       const filtered = (storeData.products || []).filter(p => {
         const matchPlatform = currentPlatform === 'ALL' || p.platform === currentPlatform;
-        const matchCategory = currentCategory === 'ALL' || (p.category || '').includes(currentCategory);
+        const matchCategory = currentCategory === 'ALL' || (p.category || '').trim() === currentCategory;
         const matchSearch = (p.name || '').toLowerCase().includes(searchKeyword) || (p.category || '').toLowerCase().includes(searchKeyword);
         return matchPlatform && matchCategory && matchSearch;
       });
