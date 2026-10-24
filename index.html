@@ -9,12 +9,27 @@
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
   <!-- 網頁頁籤圖示 (Favicon) -->
-  <link rel="icon" type="image/png" href="./favicon.png?v=8">
+  <link rel="icon" type="image/png" href="./favicon.png?v=11">
 
-  <!-- SEO 標籤 -->
+  <!-- SEO & Open Graph (OG) 社群分享標籤 -->
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
   <meta name="keywords" content="Yves嚴選特惠, 蝦皮優惠碼, 酷澎折扣碼, Shopee特價, Coupang好康">
   <meta name="robots" content="index, follow">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Yves 嚴選特惠 - 蝦皮/酷澎 精選好康折扣碼">
+  <meta property="og:description" content="天天即時更新蝦皮與酷澎最新限時優惠與全站折扣碼！市價最便宜購買連結直接領。">
+  <meta property="og:image" content="https://chenyves1017.github.io/yves-shop/favicon.png">
+  <meta property="og:url" content="https://chenyves1017.github.io/yves-shop/">
+
+  <!-- Google Analytics 4 (GA4) 流量追蹤碼 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z8SZ67GGTC"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-Z8SZ67GGTC');
+  </script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -36,16 +51,19 @@
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=8" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=11" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
             <p class="text-[10px] sm:text-xs text-gray-400 font-medium hidden sm:block">蝦皮 Shopee × 酷澎 Coupang 每日最新限時好康</p>
           </div>
         </div>
-        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> 雲端同步
-        </span>
+        <div class="flex flex-col items-end">
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> 雲端同步
+          </span>
+          <span id="last-updated-tag" class="text-[9px] sm:text-[10px] text-gray-400 font-mono mt-0.5">即時載入中...</span>
+        </div>
       </div>
     </div>
   </header>
@@ -86,13 +104,49 @@
       </div>
     </div>
 
-    <!-- 商品網格 (完全按照後台手動排好的順序呈現) -->
+    <!-- 商品網格 -->
     <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
   </main>
 
-  <footer class="bg-gray-900 text-gray-400 py-6 text-center text-[11px] border-t border-gray-800">
+  <!-- 頁尾與更新日誌入口 -->
+  <footer class="bg-gray-900 text-gray-400 py-6 text-center text-[11px] border-t border-gray-800 space-y-2">
     <p>© 2026 Yves 嚴選特惠 | 導購連結與優惠即時更新</p>
+    <p id="last-updated-footer" class="text-gray-500 text-[10px] font-mono">最後更新時間：載入中...</p>
+    <button onclick="openChangelog()" class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-[10px] font-bold transition-all border border-gray-700">
+      <i class="fa-solid fa-clock-rotate-left"></i> 系統更新日誌
+    </button>
   </footer>
+
+  <!-- 更新日誌彈窗 -->
+  <div id="changelog-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-base font-bold text-gray-900"><i class="fa-solid fa-list-check text-orange-500"></i> Yves 嚴選特惠 - 更新日誌</h3>
+        <button onclick="closeChangelog()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3 text-xs text-gray-700">
+        <div class="border-l-2 border-orange-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v2.5 (2026/10/24)</p>
+          <p class="text-gray-500">• 全面新增全站「系統更新日誌」彈窗</p>
+          <p class="text-gray-500">• 整合 Google Analytics 4 (GA4) 流量追蹤</p>
+          <p class="text-gray-500">• 優化 Threads / IG / LINE 社群 Open Graph 分享縮圖</p>
+        </div>
+        <div class="border-l-2 border-blue-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v2.0 (2026/10)</p>
+          <p class="text-gray-500">• 後台新增「📌 一鍵置頂」與排序微調功能</p>
+          <p class="text-gray-500">• 後台新增一鍵匯出/匯入 JSON 備份功能</p>
+          <p class="text-gray-500">• 後台新增 Threads / IG 社群導購文案自動生成器</p>
+          <p class="text-gray-500">• 前台升級為動態抓取商品分類與 Mobile-First 手機體驗</p>
+        </div>
+        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v1.0 (2026/09)</p>
+          <p class="text-gray-500">• 完成 GitHub Pages + Firebase 即時資料庫建置</p>
+          <p class="text-gray-500">• 啟用後台 6 位數 PIN 碼安全解鎖與手動確認儲存機制</p>
+        </div>
+      </div>
+      <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
+    </div>
+  </div>
 
   <script>
     const firebaseConfig = {
@@ -111,15 +165,16 @@
 
     let currentPlatform = 'ALL';
     let currentCategory = 'ALL';
-    let storeData = { products: [], codes: [] };
+    let storeData = { products: [], codes: [], lastUpdated: null };
 
     db.ref('yves_shop_data').on('value', (snapshot) => {
       const val = snapshot.val();
       if (val) {
         storeData.products = val.products || [];
         storeData.codes = val.codes || [];
+        storeData.lastUpdated = val.lastUpdated || null;
       } else {
-        storeData = { products: [], codes: [] };
+        storeData = { products: [], codes: [], lastUpdated: null };
       }
       renderStorefront();
     });
@@ -173,6 +228,10 @@
     }
 
     function renderStorefront() {
+      const updateStr = storeData.lastUpdated ? storeData.lastUpdated : '尚無更新紀錄';
+      document.getElementById('last-updated-tag').innerText = `最後更新：${updateStr}`;
+      document.getElementById('last-updated-footer').innerText = `最後更新時間：${updateStr}`;
+
       renderCategoryBar();
 
       const searchInput = document.getElementById('search-input');
@@ -267,6 +326,9 @@
         alert(`✅ 已複製市價最便宜購買連結！\n\n${url}`);
       }
     }
+
+    function openChangelog() { document.getElementById('changelog-modal').classList.remove('hidden'); }
+    function closeChangelog() { document.getElementById('changelog-modal').classList.add('hidden'); }
   </script>
 </body>
 </html>
