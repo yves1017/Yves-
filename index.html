@@ -9,7 +9,7 @@
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
   <!-- 網頁頁籤圖示 (Favicon) -->
-  <link rel="icon" type="image/png" href="./favicon.png?v=11">
+  <link rel="icon" type="image/png" href="./favicon.png?v=12">
 
   <!-- SEO & Open Graph (OG) 社群分享標籤 -->
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
@@ -43,7 +43,7 @@
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans selection:bg-orange-100">
+<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans selection:bg-orange-100 relative pb-16 sm:pb-0">
 
   <!-- 頂部導覽列 -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
@@ -51,7 +51,7 @@
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=11" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=12" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -108,6 +108,13 @@
     <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
   </main>
 
+  <!-- 社群好康群浮動按鈕 (順序 2) -->
+  <div class="fixed bottom-4 right-4 z-30 flex flex-col gap-2">
+    <a href="https://line.me" target="_blank" class="flex items-center gap-2 px-3 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg font-bold text-xs transition-all active:scale-95">
+      <i class="fa-brands fa-line text-base"></i> <span class="hidden sm:inline">加入 LINE 好康群</span>
+    </a>
+  </div>
+
   <!-- 頁尾與更新日誌入口 -->
   <footer class="bg-gray-900 text-gray-400 py-6 text-center text-[11px] border-t border-gray-800 space-y-2">
     <p>© 2026 Yves 嚴選特惠 | 導購連結與優惠即時更新</p>
@@ -126,22 +133,19 @@
       </div>
       <div class="space-y-3 text-xs text-gray-700">
         <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v2.5 (2026/10/24)</p>
-          <p class="text-gray-500">• 全面新增全站「系統更新日誌」彈窗</p>
-          <p class="text-gray-500">• 整合 Google Analytics 4 (GA4) 流量追蹤</p>
-          <p class="text-gray-500">• 優化 Threads / IG / LINE 社群 Open Graph 分享縮圖</p>
+          <p class="font-bold text-gray-900">v3.0 (2026/10/24)</p>
+          <p class="text-gray-500">• 新增「限時動態倒數計時」與「商品熱門標籤」</p>
+          <p class="text-gray-500">• 新增右下角 LINE 社群浮動導流按鈕</p>
+          <p class="text-gray-500">• 後台新增商品搜尋關鍵字過濾與標籤/倒數設定</p>
         </div>
         <div class="border-l-2 border-blue-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v2.0 (2026/10)</p>
-          <p class="text-gray-500">• 後台新增「📌 一鍵置頂」與排序微調功能</p>
-          <p class="text-gray-500">• 後台新增一鍵匯出/匯入 JSON 備份功能</p>
-          <p class="text-gray-500">• 後台新增 Threads / IG 社群導購文案自動生成器</p>
-          <p class="text-gray-500">• 前台升級為動態抓取商品分類與 Mobile-First 手機體驗</p>
+          <p class="font-bold text-gray-900">v2.5 (2026/10)</p>
+          <p class="text-gray-500">• 整合 Google Analytics 4 (GA4) 流量追蹤</p>
+          <p class="text-gray-500">• 優化 Threads / IG / LINE 社群 Open Graph 分享縮圖</p>
         </div>
         <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
           <p class="font-bold text-gray-900">v1.0 (2026/09)</p>
           <p class="text-gray-500">• 完成 GitHub Pages + Firebase 即時資料庫建置</p>
-          <p class="text-gray-500">• 啟用後台 6 位數 PIN 碼安全解鎖與手動確認儲存機制</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -178,6 +182,8 @@
       }
       renderStorefront();
     });
+
+    setInterval(updateCountdowns, 1000);
 
     function setPlatform(platform) {
       currentPlatform = platform;
@@ -278,12 +284,20 @@
             const promo = p.promoPrice || 0;
             const discount = Math.round((1 - promo / orig) * 100);
             const isShopee = p.platform === 'SHOPEE';
+            
+            // 熱門標籤顏色判斷
+            let badgeHtml = '';
+            if (p.badge === 'HOT') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white shadow-md">🔥 熱銷爆款</span>`;
+            else if (p.badge === 'FLASH') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-500 text-white shadow-md">⚡ 限時直降</span>`;
+            else if (p.badge === 'NEW') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-emerald-600 text-white shadow-md">✨ 新上架</span>`;
+            else if (discount > 0) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-red-600 text-white shadow-md">-${discount}%</span>`;
+
             return `
               <div class="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
                 <div class="relative aspect-square overflow-hidden bg-gray-100">
                   <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
                   <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md text-[9px] font-black text-white shadow-md ${isShopee ? 'bg-orange-600' : 'bg-blue-600'}">${isShopee ? '蝦皮' : '酷澎'}</span>
-                  ${discount > 0 ? `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-red-600 text-white shadow-md">-${discount}%</span>` : ''}
+                  ${badgeHtml}
                 </div>
                 <div class="p-2.5 sm:p-4 flex-grow flex flex-col justify-between space-y-2.5">
                   <div>
@@ -295,7 +309,9 @@
                       <span class="text-sm sm:text-lg font-black text-red-600">NT$ ${promo}</span>
                       <span class="text-[10px] sm:text-xs text-gray-400 line-through">NT$ ${orig}</span>
                     </div>
-                    ${p.code ? `<div class="mt-1.5 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${p.code}</strong></span><button onclick="copyCode('${p.code}')" class="text-orange-600 font-bold hover:underline">複製</button></div>` : ''}
+                    
+                    ${p.expiry ? `<div class="mt-1.5 text-[10px] bg-red-50 text-red-600 px-1.5 py-0.5 rounded border border-red-100 font-mono font-bold countdown-timer" data-expiry="${p.expiry}">⏳ 載入倒數...</div>` : ''}
+                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${p.code}</strong></span><button onclick="copyCode('${p.code}')" class="text-orange-600 font-bold hover:underline">複製</button></div>` : ''}
                     
                     <div class="mt-2.5 flex gap-1.5">
                       <a href="${p.link || '#'}" target="_blank" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
@@ -307,6 +323,25 @@
             `;
           }).join('');
       }
+      updateCountdowns();
+    }
+
+    function updateCountdowns() {
+      document.querySelectorAll('.countdown-timer').forEach(el => {
+        const expiryTime = new Date(el.getAttribute('data-expiry')).getTime();
+        const now = new Date().getTime();
+        const diff = expiryTime - now;
+
+        if (diff <= 0) {
+          el.innerText = '⚠️ 限時優惠已截止';
+        } else {
+          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const secs = Math.floor((diff % (1000 * 60)) / 1000);
+          el.innerText = `⏳ 剩餘 ${days > 0 ? days + '天 ' : ''}${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+        }
+      });
     }
 
     function copyCode(code) {
@@ -316,11 +351,7 @@
 
     function shareProduct(title, url) {
       if (navigator.share) {
-        navigator.share({
-          title: title,
-          text: `【Yves 嚴選特惠】${title} - 市價最便宜購買連結：`,
-          url: url
-        }).catch(() => {});
+        navigator.share({ title: title, text: `【Yves 嚴選特惠】${title} - 市價最便宜購買連結：`, url: url }).catch(() => {});
       } else {
         navigator.clipboard.writeText(url);
         alert(`✅ 已複製市價最便宜購買連結！\n\n${url}`);
