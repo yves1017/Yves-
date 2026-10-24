@@ -8,8 +8,8 @@
   <!-- Google Search Console 所有權驗證標籤 -->
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
-  <!-- 網頁頁籤圖示 (Favicon 強制清除快取) -->
-  <link rel="icon" type="image/png" href="./favicon.png?v=3">
+  <!-- 網頁頁籤圖示 (Favicon) -->
+  <link rel="icon" type="image/png" href="./favicon.png?v=4">
 
   <!-- SEO 標籤 -->
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
@@ -25,13 +25,13 @@
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans">
 
+  <!-- 頂部導覽列 -->
   <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center gap-3">
-          <!-- 頂部選單圖示：純乾淨大頭貼（無背景色與字體蓋住） -->
           <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=3" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=4" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -39,36 +39,54 @@
           </div>
         </div>
         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
-          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> 雲端同步中
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span> 雲端即時同步
         </span>
       </div>
     </div>
   </header>
 
+  <!-- 全站獨家優惠碼區區塊（帶專屬領券連結功能） -->
   <section class="bg-gradient-to-r from-orange-600 via-rose-600 to-blue-700 text-white py-6 shadow-inner">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-sm sm:text-base font-bold flex items-center gap-2"><i class="fa-solid fa-ticket text-yellow-300"></i> 本日全站獨家優惠碼</h2>
-        <span class="text-xs text-orange-100">點擊即可複製</span>
+        <h2 class="text-sm sm:text-base font-bold flex items-center gap-2"><i class="fa-solid fa-ticket text-yellow-300"></i> 本日全站獨家優惠券</h2>
+        <span class="text-xs text-orange-100">點擊複製碼 / 開啟連結</span>
       </div>
       <div id="promo-codes-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3"></div>
     </div>
   </section>
 
+  <!-- 主要內容區 -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 搜尋與平台/分類篩選面板 -->
     <div class="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-gray-100 mb-8 space-y-4">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <!-- 平台分頁切換 -->
         <div class="flex p-1 bg-gray-100 rounded-xl max-w-md w-full">
           <button onclick="setPlatform('ALL')" id="tab-ALL" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-800">全部平台</button>
           <button onclick="setPlatform('SHOPEE')" id="tab-SHOPEE" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-orange-600">蝦皮 Shopee</button>
           <button onclick="setPlatform('COUPANG')" id="tab-COUPANG" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-blue-600">酷澎 Coupang</button>
         </div>
+        <!-- 搜尋欄 -->
         <div class="relative flex-grow max-w-md">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
           <input type="text" id="search-input" oninput="renderStorefront()" placeholder="搜尋商品名稱、關鍵字..." class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all">
         </div>
       </div>
+
+      <!-- 分類標籤快速列 -->
+      <div class="flex items-center gap-2 overflow-x-auto pt-2 pb-1 text-xs no-scrollbar">
+        <span class="text-gray-400 font-bold flex-shrink-0 mr-1"><i class="fa-solid fa-filter"></i> 分類：</span>
+        <button onclick="setCategory('ALL')" id="cat-ALL" class="px-3 py-1.5 rounded-lg font-bold bg-orange-500 text-white flex-shrink-0 shadow-sm transition-all">全部</button>
+        <button onclick="setCategory('3C家電')" id="cat-3C家電" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 hover:bg-gray-200 text-gray-600 flex-shrink-0 transition-all">3C家電</button>
+        <button onclick="setCategory('美食零食')" id="cat-美食零食" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 hover:bg-gray-200 text-gray-600 flex-shrink-0 transition-all">美食零食</button>
+        <button onclick="setCategory('生活用品')" id="cat-生活用品" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 hover:bg-gray-200 text-gray-600 flex-shrink-0 transition-all">生活用品</button>
+        <button onclick="setCategory('美妝保養')" id="cat-美妝保養" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 hover:bg-gray-200 text-gray-600 flex-shrink-0 transition-all">美妝保養</button>
+        <button onclick="setCategory('流行服飾')" id="cat-流行服飾" class="px-3 py-1.5 rounded-lg font-bold bg-gray-100 hover:bg-gray-200 text-gray-600 flex-shrink-0 transition-all">流行服飾</button>
+      </div>
     </div>
+
+    <!-- 商品網格 -->
     <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"></div>
   </main>
 
@@ -92,6 +110,7 @@
     const db = firebase.database();
 
     let currentPlatform = 'ALL';
+    let currentCategory = 'ALL';
     let storeData = { products: [], codes: [] };
 
     db.ref('yves_shop_data').on('value', (snapshot) => {
@@ -118,36 +137,61 @@
       renderStorefront();
     }
 
+    function setCategory(cat) {
+      currentCategory = cat;
+      ['ALL', '3C家電', '美食零食', '生活用品', '美妝保養', '流行服飾'].forEach(c => {
+        const btn = document.getElementById(`cat-${c}`);
+        if (btn) {
+          btn.className = c === cat
+            ? "px-3 py-1.5 rounded-lg font-bold bg-orange-500 text-white flex-shrink-0 shadow-sm transition-all"
+            : "px-3 py-1.5 rounded-lg font-bold bg-gray-100 hover:bg-gray-200 text-gray-600 flex-shrink-0 transition-all";
+        }
+      });
+      renderStorefront();
+    }
+
     function renderStorefront() {
       const searchInput = document.getElementById('search-input');
       const searchKeyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
       const promoContainer = document.getElementById('promo-codes-container');
       const activeCodes = (storeData.codes || []).filter(c => c.active);
       
+      // 渲染優惠券（帶有連結與複製功能）
       if (promoContainer) {
         promoContainer.innerHTML = activeCodes.length === 0 
           ? `<div class="col-span-full text-center py-2 text-xs text-orange-100">目前尚無優惠碼</div>`
           : activeCodes.map(c => `
-            <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 flex items-center justify-between text-white">
-              <div>
-                <span class="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded ${c.platform === 'SHOPEE' ? 'bg-orange-500/80' : 'bg-blue-500/80'}">${c.platform}</span>
-                <p class="text-xs font-semibold mt-1">${c.desc}</p>
+            <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-3 flex flex-col justify-between text-white space-y-2">
+              <div class="flex items-start justify-between gap-2">
+                <div>
+                  <span class="text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded ${c.platform === 'SHOPEE' ? 'bg-orange-500/90' : 'bg-blue-500/90'}">${c.platform}</span>
+                  <p class="text-xs font-semibold mt-1">${c.desc}</p>
+                </div>
+                <button onclick="copyCode('${c.code}')" class="px-2.5 py-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95 flex-shrink-0">
+                  ${c.code} <i class="fa-regular fa-copy ml-1"></i>
+                </button>
               </div>
-              <button onclick="copyCode('${c.code}')" class="px-3 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95">${c.code} <i class="fa-regular fa-copy ml-1"></i></button>
+              ${c.link ? `
+                <a href="${c.link}" target="_blank" class="w-full py-1.5 bg-white/20 hover:bg-white/30 text-white font-bold text-[11px] rounded-lg text-center transition-all flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-link text-[10px]"></i> 前往領券頁面
+                </a>
+              ` : ''}
             </div>
           `).join('');
       }
 
+      // 篩選商品
       const filtered = (storeData.products || []).filter(p => {
         const matchPlatform = currentPlatform === 'ALL' || p.platform === currentPlatform;
+        const matchCategory = currentCategory === 'ALL' || (p.category || '').includes(currentCategory);
         const matchSearch = (p.name || '').toLowerCase().includes(searchKeyword) || (p.category || '').toLowerCase().includes(searchKeyword);
-        return matchPlatform && matchSearch;
+        return matchPlatform && matchCategory && matchSearch;
       });
 
       const grid = document.getElementById('product-grid');
       if (grid) {
         grid.innerHTML = filtered.length === 0 
-          ? `<div class="col-span-full py-16 text-center text-gray-400"><i class="fa-solid fa-box-open text-4xl mb-3"></i><p>目前尚無特惠商品</p></div>`
+          ? `<div class="col-span-full py-16 text-center text-gray-400"><i class="fa-solid fa-box-open text-4xl mb-3"></i><p>沒有找到符合的商品</p></div>`
           : filtered.map(p => {
             const orig = p.originalPrice || 1;
             const promo = p.promoPrice || 0;
@@ -171,7 +215,11 @@
                       <span class="text-xs text-gray-400 line-through">NT$ ${orig}</span>
                     </div>
                     ${p.code ? `<div class="mt-2 text-[11px] bg-orange-50 text-orange-700 px-2 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${p.code}</strong></span><button onclick="copyCode('${p.code}')" class="text-orange-600 font-bold hover:underline">複製</button></div>` : ''}
-                    <a href="${p.link || '#'}" target="_blank" class="mt-3 w-full py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm ${isShopee ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}">前往領券購買 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
+                    
+                    <div class="mt-3 flex gap-2">
+                      <a href="${p.link || '#'}" target="_blank" class="flex-grow py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm ${isShopee ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}">前往領券購買 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a>
+                      <button onclick="shareProduct('${p.name}', '${p.link}')" class="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition-all" title="分享商品"><i class="fa-solid fa-share-nodes"></i></button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -183,6 +231,15 @@
     function copyCode(code) {
       navigator.clipboard.writeText(code);
       alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
+    }
+
+    function shareProduct(title, url) {
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url);
+        alert(`✅ 已複製商品導購連結：\n${url}`);
+      }
     }
   </script>
 </body>
