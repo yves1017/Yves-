@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=4">
+  <link rel="icon" type="image/png" href="./favicon.png?v=5">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -32,7 +32,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=4" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=5" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-base font-bold">Yves 特惠後台管理系統</h1>
         </div>
@@ -52,6 +52,7 @@
         </button>
       </div>
 
+      <!-- 商品管理區 -->
       <section id="panel-products" class="space-y-4">
         <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <h2 class="text-base font-bold text-gray-800">特惠商品列表</h2>
@@ -70,6 +71,7 @@
         </div>
       </section>
 
+      <!-- 優惠券管理區 -->
       <section id="panel-codes" class="hidden space-y-4">
         <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
           <h2 class="text-base font-bold text-gray-800">全站優惠券列表</h2>
@@ -90,7 +92,7 @@
     </main>
   </div>
 
-  <!-- 商品彈窗 -->
+  <!-- 商品彈窗 (新增/編輯) -->
   <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
       <h3 id="pm-title" class="text-base font-bold text-gray-900">新增商品</h3>
@@ -119,10 +121,11 @@
     </div>
   </div>
 
-  <!-- 優惠券彈窗 -->
+  <!-- 優惠券彈窗 (新增/編輯) -->
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-      <h3 class="text-base font-bold text-gray-900">新增全站優惠券</h3>
+      <h3 id="cm-title" class="text-base font-bold text-gray-900">新增全站優惠券</h3>
+      <input type="hidden" id="cm-id">
       <div class="space-y-3 text-xs">
         <input type="text" id="cm-code" placeholder="優惠碼 (如: SHOPEE100)" class="w-full p-2 border border-gray-300 rounded-lg font-mono uppercase">
         <select id="cm-platform" class="w-full p-2 border border-gray-300 rounded-lg">
@@ -182,6 +185,7 @@
       });
     }
 
+    // 只有在確認操作時才推送到 Firebase 進行同步儲存
     function pushToFirebase() {
       db.ref('yves_shop_data').set({
         products: productsList,
@@ -231,11 +235,15 @@
           <td class="p-3.5 text-center">
             <button onclick="toggleCodeStatus(${c.id})" class="px-2 py-1 rounded text-[10px] font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用中' : '已停用'}</button>
           </td>
-          <td class="p-3.5 text-center"><button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button></td>
+          <td class="p-3.5 text-center flex justify-center gap-2">
+            <button onclick="editCode(${c.id})" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg" title="編輯優惠券"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="刪除優惠券"><i class="fa-solid fa-trash"></i></button>
+          </td>
         </tr>
       `).join('');
     }
 
+    /* --- 商品邏輯 --- */
     function openProductModal() {
       document.getElementById('pm-title').innerText = '新增商品';
       document.getElementById('pm-id').value = '';
@@ -269,6 +277,8 @@
     function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
     
     function saveProduct() {
+      if (!confirm('確定要儲存商品變更並更新至雲端嗎？')) return;
+
       const editId = document.getElementById('pm-id').value;
       const productData = {
         id: editId ? Number(editId) : Date.now(),
@@ -294,46 +304,85 @@
     }
 
     function deleteProduct(id) {
-      productsList = productsList.filter(p => p.id !== id);
-      pushToFirebase();
+      if (confirm('確定要刪除此商品嗎？')) {
+        productsList = productsList.filter(p => p.id !== id);
+        pushToFirebase();
+      }
     }
 
     function clearAllProducts() {
-      if (confirm('確定清空所有商品嗎？')) {
+      if (confirm('⚠️ 警告：確定要清空所有商品嗎？此動作無法復原！')) {
         productsList = [];
         pushToFirebase();
       }
     }
 
-    function openCodeModal() { document.getElementById('code-modal').classList.remove('hidden'); }
+    /* --- 優惠券邏輯 (新增/編輯/備份) --- */
+    function openCodeModal() { 
+      document.getElementById('cm-title').innerText = '新增全站優惠券';
+      document.getElementById('cm-id').value = '';
+      document.getElementById('cm-code').value = '';
+      document.getElementById('cm-platform').value = 'SHOPEE';
+      document.getElementById('cm-desc').value = '';
+      document.getElementById('cm-link').value = '';
+      document.getElementById('code-modal').classList.remove('hidden'); 
+    }
+
+    function editCode(id) {
+      const c = codesList.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('cm-title').innerText = '編輯全站優惠券';
+      document.getElementById('cm-id').value = c.id;
+      document.getElementById('cm-code').value = c.code;
+      document.getElementById('cm-platform').value = c.platform;
+      document.getElementById('cm-desc').value = c.desc;
+      document.getElementById('cm-link').value = c.link || '';
+      document.getElementById('code-modal').classList.remove('hidden');
+    }
+
     function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
     
     function saveCode() {
-      codesList.unshift({
-        id: Date.now(),
+      if (!confirm('確定要儲存優惠券變更並更新至雲端嗎？')) return;
+
+      const editId = document.getElementById('cm-id').value;
+      const codeData = {
+        id: editId ? Number(editId) : Date.now(),
         code: document.getElementById('cm-code').value.toUpperCase(),
         platform: document.getElementById('cm-platform').value,
         desc: document.getElementById('cm-desc').value || '全館優惠',
         link: document.getElementById('cm-link').value || '',
-        active: true
-      });
+        active: editId ? (codesList.find(x => x.id === Number(editId))?.active ?? true) : true
+      };
+
+      if (editId) {
+        const idx = codesList.findIndex(x => x.id === Number(editId));
+        if (idx !== -1) codesList[idx] = codeData;
+      } else {
+        codesList.unshift(codeData);
+      }
+
       pushToFirebase();
       closeCodeModal();
     }
 
     function toggleCodeStatus(id) {
       const c = codesList.find(x => x.id === id);
-      if (c) c.active = !c.active;
-      pushToFirebase();
+      if (c) {
+        c.active = !c.active;
+        pushToFirebase();
+      }
     }
 
     function deleteCode(id) {
-      codesList = codesList.filter(c => c.id !== id);
-      pushToFirebase();
+      if (confirm('確定要刪除此優惠券嗎？')) {
+        codesList = codesList.filter(c => c.id !== id);
+        pushToFirebase();
+      }
     }
 
     function clearAllCodes() {
-      if (confirm('確定清空所有優惠券嗎？')) {
+      if (confirm('⚠️ 警告：確定要清空所有優惠券嗎？此動作無法復原！')) {
         codesList = [];
         pushToFirebase();
       }
