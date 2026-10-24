@@ -9,7 +9,7 @@
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
   <!-- 網頁頁籤圖示 (Favicon) -->
-  <link rel="icon" type="image/png" href="./favicon.png?v=7">
+  <link rel="icon" type="image/png" href="./favicon.png?v=8">
 
   <!-- SEO 標籤 -->
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
@@ -36,7 +36,7 @@
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=7" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=8" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -79,14 +79,14 @@
         </div>
       </div>
 
-      <!-- 動態生成分類標籤快速列 -->
+      <!-- 動態分類標籤列 -->
       <div class="flex items-center gap-1.5 overflow-x-auto pt-1 pb-1 text-xs no-scrollbar -mx-1 px-1">
         <span class="text-gray-400 font-bold flex-shrink-0 text-[11px]"><i class="fa-solid fa-filter"></i> 分類：</span>
         <div id="category-bar-container" class="flex items-center gap-1.5"></div>
       </div>
     </div>
 
-    <!-- 商品網格 -->
+    <!-- 商品網格 (完全按照後台手動排好的順序呈現) -->
     <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
   </main>
 
@@ -146,7 +146,6 @@
       const catContainer = document.getElementById('category-bar-container');
       if (!catContainer) return;
 
-      // 自動從現有商品抓取所有出現過的分類（去重複）
       const existingCategories = Array.from(new Set(
         (storeData.products || [])
           .map(p => (p.category || '').trim())
@@ -154,8 +153,6 @@
       ));
 
       let categoriesToDisplay = ['ALL', ...existingCategories];
-      
-      // 若當前選擇的分類已不存在，自動重置為 ALL
       if (!categoriesToDisplay.includes(currentCategory)) {
         currentCategory = 'ALL';
       }
