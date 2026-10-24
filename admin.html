@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=6">
+  <link rel="icon" type="image/png" href="./favicon.png?v=8">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -32,7 +32,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=6" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=8" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
@@ -54,17 +54,26 @@
 
       <!-- 商品管理區 -->
       <section id="panel-products" class="space-y-3">
-        <div class="flex justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100">
+        <div class="flex flex-wrap justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 gap-2">
           <h2 class="text-sm sm:text-base font-bold text-gray-800">特惠商品列表</h2>
-          <div class="flex gap-1.5">
-            <button onclick="clearAllProducts()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button>
-            <button onclick="openProductModal()" class="px-3 py-2 bg-orange-500 text-white font-bold text-xs rounded-xl shadow">+ 新增</button>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="exportJSON()" class="px-2.5 py-1.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold text-xs rounded-xl transition-all"><i class="fa-solid fa-download"></i> 備份 JSON</button>
+            <button onclick="document.getElementById('import-file').click()" class="px-2.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-700 font-bold text-xs rounded-xl transition-all"><i class="fa-solid fa-upload"></i> 匯入 JSON</button>
+            <input type="file" id="import-file" class="hidden" accept=".json" onchange="importJSON(event)">
+            <button onclick="clearAllProducts()" class="px-2.5 py-1.5 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button>
+            <button onclick="openProductModal()" class="px-3 py-1.5 bg-orange-500 text-white font-bold text-xs rounded-xl shadow">+ 新增商品</button>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
-              <tr><th class="p-3">商品</th><th class="p-3">平台</th><th class="p-3">特惠價</th><th class="p-3 text-center">操作</th></tr>
+              <tr>
+                <th class="p-3">順序</th>
+                <th class="p-3">商品</th>
+                <th class="p-3">平台</th>
+                <th class="p-3">特惠價</th>
+                <th class="p-3 text-center">操作與文案</th>
+              </tr>
             </thead>
             <tbody id="product-table-body" class="divide-y divide-gray-100"></tbody>
           </table>
@@ -121,7 +130,19 @@
     </div>
   </div>
 
-  <!-- 優惠券彈窗 (新增/編輯) -->
+  <!-- 社群文案生成彈窗 -->
+  <div id="copy-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-gray-900"><i class="fa-brands fa-threads text-orange-500"></i> Threads / IG 宣傳文案</h3>
+        <button onclick="closeCopyModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <textarea id="copy-text" rows="8" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-mono bg-gray-50 focus:bg-white focus:outline-none"></textarea>
+      <button onclick="copyGeneratedText()" class="w-full py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs shadow">複製整段文案</button>
+    </div>
+  </div>
+
+  <!-- 優惠券彈窗 -->
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
       <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
@@ -208,15 +229,23 @@
 
     function renderAdminTables() {
       const pTbody = document.getElementById('product-table-body');
-      pTbody.innerHTML = productsList.length === 0 ? `<tr><td colspan="4" class="p-6 text-center text-gray-400 font-bold">無商品</td></tr>` : productsList.map(p => `
+      pTbody.innerHTML = productsList.length === 0 ? `<tr><td colspan="5" class="p-6 text-center text-gray-400 font-bold">無商品</td></tr>` : productsList.map((p, idx) => `
         <tr class="hover:bg-gray-50">
+          <td class="p-3 text-center whitespace-nowrap">
+            <div class="flex items-center gap-1">
+              <button onclick="pinProduct(${idx})" class="p-1 text-gray-400 hover:text-orange-500" title="一鍵置頂"><i class="fa-solid fa-thumbtack"></i></button>
+              <button onclick="moveProduct(${idx}, -1)" class="p-1 text-gray-400 hover:text-blue-500" ${idx === 0 ? 'disabled class="opacity-30"' : ''}><i class="fa-solid fa-arrow-up"></i></button>
+              <button onclick="moveProduct(${idx}, 1)" class="p-1 text-gray-400 hover:text-blue-500" ${idx === productsList.length - 1 ? 'disabled class="opacity-30"' : ''}><i class="fa-solid fa-arrow-down"></i></button>
+            </div>
+          </td>
           <td class="p-3 flex items-center gap-2">
             <img src="${p.image}" class="w-8 h-8 rounded object-cover flex-shrink-0">
             <div class="truncate max-w-[120px] sm:max-w-xs"><p class="font-bold text-gray-800 truncate">${p.name}</p></div>
           </td>
           <td class="p-3"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${p.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${p.platform === 'SHOPEE' ? '蝦皮' : '酷澎'}</span></td>
-          <td class="p-3 font-bold text-red-600">NT$${p.promoPrice}</td>
-          <td class="p-3 text-center">
+          <td class="p-3 font-bold text-red-600 whitespace-nowrap">NT$${p.promoPrice}</td>
+          <td class="p-3 text-center whitespace-nowrap">
+            <button onclick="generateCopy(${idx})" class="px-2 py-1 bg-orange-100 text-orange-700 rounded-md font-bold text-[10px] mr-1" title="產出文案"><i class="fa-regular fa-copy"></i> 文案</button>
             <button onclick="editProduct(${p.id})" class="p-1 text-blue-500"><i class="fa-solid fa-pen"></i></button>
             <button onclick="deleteProduct(${p.id})" class="p-1 text-red-500 ml-1"><i class="fa-solid fa-trash"></i></button>
           </td>
@@ -239,6 +268,82 @@
       `).join('');
     }
 
+    /* --- 順序調整與置頂邏輯 --- */
+    function pinProduct(index) {
+      if (index === 0) return;
+      const target = productsList.splice(index, 1)[0];
+      productsList.unshift(target);
+      pushToFirebase();
+    }
+
+    function moveProduct(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= productsList.length) return;
+      const temp = productsList[index];
+      productsList[index] = productsList[newIndex];
+      productsList[newIndex] = temp;
+      pushToFirebase();
+    }
+
+    /* --- 社群文案生成邏輯 --- */
+    function generateCopy(index) {
+      const p = productsList[index];
+      if (!p) return;
+      const discount = Math.round((1 - p.promoPrice / (p.originalPrice || 1)) * 100);
+      const text = `🔥【Yves 嚴選好康】${p.name}\n\n` +
+                   `💰 限時特惠價：NT$ ${p.promoPrice} (原價 $${p.originalPrice}，直降 ${discount}% OFF！)\n` +
+                   (p.code ? `🎟️ 獨家優惠碼：${p.code}\n` : '') +
+                   `\n👉 市價最便宜購買連結：\n${p.link}\n\n` +
+                   `#Yves嚴選特惠 #${p.platform === 'SHOPEE' ? '蝦皮優惠' : '酷澎特價'} #限時好康`;
+      
+      document.getElementById('copy-text').value = text;
+      document.getElementById('copy-modal').classList.remove('hidden');
+    }
+
+    function closeCopyModal() { document.getElementById('copy-modal').classList.add('hidden'); }
+    
+    function copyGeneratedText() {
+      const text = document.getElementById('copy-text').value;
+      navigator.clipboard.writeText(text);
+      alert('✅ 已複製 Threads / IG 宣傳文案！');
+      closeCopyModal();
+    }
+
+    /* --- JSON 備份與匯入邏輯 --- */
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+        products: productsList,
+        codes: codesList
+      }, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `yves_shop_backup_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (confirm('確定要將備份 JSON 覆蓋目前的雲端資料庫嗎？')) {
+            productsList = importedData.products || [];
+            codesList = importedData.codes || [];
+            pushToFirebase();
+            alert('✅ 匯入成功！');
+          }
+        } catch (err) {
+          alert('❌ JSON 格式不正確，請檢查檔案！');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    /* --- 基本 CRUD 邏輯 --- */
     function openProductModal() {
       document.getElementById('pm-title').innerText = '新增商品';
       document.getElementById('pm-id').value = '';
