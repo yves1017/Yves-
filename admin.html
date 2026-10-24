@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=9">
+  <link rel="icon" type="image/png" href="./favicon.png?v=11">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -33,13 +33,18 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=9" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=11" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
-        <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-gray-800 active:bg-gray-700 text-gray-200 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1">
-          <i class="fa-solid fa-eye"></i> 預覽前台
-        </a>
+        <div class="flex items-center gap-2">
+          <button onclick="openChangelog()" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1">
+            <i class="fa-solid fa-clock-rotate-left"></i> 日誌
+          </button>
+          <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-orange-600 active:bg-orange-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow">
+            <i class="fa-solid fa-eye"></i> 預覽前台
+          </a>
+        </div>
       </div>
     </header>
 
@@ -67,7 +72,6 @@
           </div>
         </div>
 
-        <!-- 桌面版顯示表格 / 手機版渲染卡片 -->
         <div id="products-container" class="space-y-3"></div>
       </section>
 
@@ -148,6 +152,37 @@
     </div>
   </div>
 
+  <!-- 更新日誌彈窗 -->
+  <div id="changelog-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="text-base font-bold text-gray-900"><i class="fa-solid fa-list-check text-orange-500"></i> Yves 嚴選特惠 - 更新日誌</h3>
+        <button onclick="closeChangelog()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="space-y-3 text-xs text-gray-700">
+        <div class="border-l-2 border-orange-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v2.5 (2026/10/24)</p>
+          <p class="text-gray-500">• 全面新增全站「系統更新日誌」彈窗</p>
+          <p class="text-gray-500">• 整合 Google Analytics 4 (GA4) 流量追蹤</p>
+          <p class="text-gray-500">• 優化 Threads / IG / LINE 社群 Open Graph 分享縮圖</p>
+        </div>
+        <div class="border-l-2 border-blue-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v2.0 (2026/10)</p>
+          <p class="text-gray-500">• 後台新增「📌 一鍵置頂」與排序微調功能</p>
+          <p class="text-gray-500">• 後台新增一鍵匯出/匯入 JSON 備份功能</p>
+          <p class="text-gray-500">• 後台新增 Threads / IG 社群導購文案自動生成器</p>
+          <p class="text-gray-500">• 前台升級為動態抓取商品分類與 Mobile-First 手機體驗</p>
+        </div>
+        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v1.0 (2026/09)</p>
+          <p class="text-gray-500">• 完成 GitHub Pages + Firebase 即時資料庫建置</p>
+          <p class="text-gray-500">• 啟用後台 6 位數 PIN 碼安全解鎖與手動確認儲存機制</p>
+        </div>
+      </div>
+      <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
+    </div>
+  </div>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBcI0OjXhHwOMsr_HhubzfLlVf_9wVcERI",
@@ -191,10 +226,21 @@
       });
     }
 
+    function getNowFormatted() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+    }
+
     function pushToFirebase() {
       db.ref('yves_shop_data').set({
         products: productsList,
-        codes: codesList
+        codes: codesList,
+        lastUpdated: getNowFormatted()
       });
     }
 
@@ -213,7 +259,6 @@
     }
 
     function renderAdminUI() {
-      // 渲染商品列表卡片
       const pContainer = document.getElementById('products-container');
       if (productsList.length === 0) {
         pContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何商品</div>`;
@@ -234,7 +279,6 @@
                 </div>
               </div>
 
-              <!-- 操作控制欄 (手機大觸控鍵) -->
               <div class="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-gray-100">
                 <div class="flex items-center bg-gray-50 rounded-lg p-0.5">
                   <button onclick="pinProduct(${idx})" class="px-2 py-1.5 text-gray-400 hover:text-orange-500 text-xs" title="一鍵置頂"><i class="fa-solid fa-thumbtack"></i></button>
@@ -253,7 +297,6 @@
         }).join('');
       }
 
-      // 渲染優惠券列表
       const cContainer = document.getElementById('codes-container');
       if (codesList.length === 0) {
         cContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何優惠券</div>`;
@@ -322,7 +365,8 @@
     function exportJSON() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
         products: productsList,
-        codes: codesList
+        codes: codesList,
+        lastUpdated: getNowFormatted()
       }, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
@@ -352,7 +396,7 @@
       reader.readAsText(file);
     }
 
-    /* --- 商品與優惠券 CRUD 邏輯 --- */
+    /* --- CRUD 邏輯 --- */
     function openProductModal() {
       document.getElementById('pm-title').innerText = '新增商品';
       document.getElementById('pm-id').value = '';
@@ -495,6 +539,9 @@
         pushToFirebase();
       }
     }
+
+    function openChangelog() { document.getElementById('changelog-modal').classList.remove('hidden'); }
+    function closeChangelog() { document.getElementById('changelog-modal').classList.add('hidden'); }
   </script>
 </body>
 </html>
