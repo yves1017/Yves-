@@ -2,10 +2,10 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=5">
+  <link rel="icon" type="image/png" href="./favicon.png?v=6">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -16,55 +16,55 @@
 
   <!-- PIN 碼解鎖視窗 -->
   <div id="pin-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
       <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl">
         <i class="fa-solid fa-lock"></i>
       </div>
-      <h2 class="text-lg font-black text-gray-900">進入管理控制台</h2>
+      <h2 class="text-base sm:text-lg font-black text-gray-900">進入管理控制台</h2>
       <p class="text-xs text-gray-500">請輸入管理員 PIN 碼</p>
       <input type="password" id="pin-input" placeholder="請輸入密碼" class="w-full text-center tracking-widest text-lg font-bold py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
-      <button onclick="verifyPIN()" class="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl text-sm transition-all shadow-md">解鎖進入</button>
+      <button onclick="verifyPIN()" class="w-full py-3 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-sm transition-all shadow-md">解鎖進入</button>
     </div>
   </div>
 
   <div id="admin-content" class="hidden min-h-screen flex flex-col">
     <header class="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-40">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=5" alt="Yves Logo" class="w-full h-full object-cover">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
+            <img src="./favicon.png?v=6" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
-          <h1 class="text-base font-bold">Yves 特惠後台管理系統</h1>
+          <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
-        <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-200 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1.5">
-          <i class="fa-solid fa-eye"></i> 開啟前台預覽
+        <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-gray-800 active:bg-gray-700 text-gray-200 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1">
+          <i class="fa-solid fa-eye"></i> 預覽
         </a>
       </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div class="flex border-b border-gray-200 bg-white rounded-t-2xl px-4 pt-3 gap-2">
-        <button onclick="switchTab('products')" id="btn-tab-products" class="px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-all">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-4 sm:space-y-6">
+      <div class="flex border-b border-gray-200 bg-white rounded-t-2xl px-2 sm:px-4 pt-2 gap-1 sm:gap-2">
+        <button onclick="switchTab('products')" id="btn-tab-products" class="flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all">
           <i class="fa-solid fa-box-open"></i> 商品管理
         </button>
-        <button onclick="switchTab('codes')" id="btn-tab-codes" class="px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-all">
-          <i class="fa-solid fa-ticket"></i> 全站優惠券管理
+        <button onclick="switchTab('codes')" id="btn-tab-codes" class="flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all">
+          <i class="fa-solid fa-ticket"></i> 優惠券管理
         </button>
       </div>
 
       <!-- 商品管理區 -->
-      <section id="panel-products" class="space-y-4">
-        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <h2 class="text-base font-bold text-gray-800">特惠商品列表</h2>
-          <div class="flex gap-2">
-            <button onclick="clearAllProducts()" class="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-xs rounded-xl transition-all">清空全部商品</button>
-            <button onclick="openProductModal()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增商品</button>
+      <section id="panel-products" class="space-y-3">
+        <div class="flex justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100">
+          <h2 class="text-sm sm:text-base font-bold text-gray-800">特惠商品列表</h2>
+          <div class="flex gap-1.5">
+            <button onclick="clearAllProducts()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button>
+            <button onclick="openProductModal()" class="px-3 py-2 bg-orange-500 text-white font-bold text-xs rounded-xl shadow">+ 新增</button>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
-              <tr><th class="p-3.5">商品圖/名稱</th><th class="p-3.5">平台</th><th class="p-3.5">特惠價 / 原價</th><th class="p-3.5">券碼</th><th class="p-3.5 text-center">操作</th></tr>
+              <tr><th class="p-3">商品</th><th class="p-3">平台</th><th class="p-3">特惠價</th><th class="p-3 text-center">操作</th></tr>
             </thead>
             <tbody id="product-table-body" class="divide-y divide-gray-100"></tbody>
           </table>
@@ -72,18 +72,18 @@
       </section>
 
       <!-- 優惠券管理區 -->
-      <section id="panel-codes" class="hidden space-y-4">
-        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-          <h2 class="text-base font-bold text-gray-800">全站優惠券列表</h2>
-          <div class="flex gap-2">
-            <button onclick="clearAllCodes()" class="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 font-bold text-xs rounded-xl transition-all">清空全部優惠券</button>
-            <button onclick="openCodeModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow transition-all">+ 新增優惠券</button>
+      <section id="panel-codes" class="hidden space-y-3">
+        <div class="flex justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100">
+          <h2 class="text-sm sm:text-base font-bold text-gray-800">優惠券列表</h2>
+          <div class="flex gap-1.5">
+            <button onclick="clearAllCodes()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button>
+            <button onclick="openCodeModal()" class="px-3 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow">+ 新增</button>
           </div>
         </div>
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-gray-50 text-gray-500 uppercase border-b border-gray-100 font-bold">
-              <tr><th class="p-3.5">優惠碼</th><th class="p-3.5">平台</th><th class="p-3.5">說明</th><th class="p-3.5">領券連結</th><th class="p-3.5 text-center">狀態</th><th class="p-3.5 text-center">操作</th></tr>
+              <tr><th class="p-3">券碼</th><th class="p-3">說明</th><th class="p-3 text-center">狀態</th><th class="p-3 text-center">操作</th></tr>
             </thead>
             <tbody id="code-table-body" class="divide-y divide-gray-100"></tbody>
           </table>
@@ -93,51 +93,51 @@
   </div>
 
   <!-- 商品彈窗 (新增/編輯) -->
-  <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+  <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
       <h3 id="pm-title" class="text-base font-bold text-gray-900">新增商品</h3>
       <input type="hidden" id="pm-id">
-      <div class="space-y-3 text-xs">
-        <input type="text" id="pm-name" placeholder="商品名稱" class="w-full p-2 border border-gray-300 rounded-lg">
-        <div class="grid grid-cols-2 gap-3">
-          <select id="pm-platform" class="p-2 border border-gray-300 rounded-lg">
+      <div class="space-y-2.5 text-xs">
+        <input type="text" id="pm-name" placeholder="商品名稱" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="pm-platform" class="p-2.5 border border-gray-300 rounded-xl">
             <option value="SHOPEE">蝦皮 Shopee</option>
             <option value="COUPANG">酷澎 Coupang</option>
           </select>
-          <input type="text" id="pm-category" placeholder="分類 (例如: 美食零食, 3C家電)" class="p-2 border border-gray-300 rounded-lg">
+          <input type="text" id="pm-category" placeholder="分類 (美食/3C)" class="p-2.5 border border-gray-300 rounded-xl">
         </div>
-        <div class="grid grid-cols-2 gap-3">
-          <input type="number" id="pm-orig" placeholder="原價" class="p-2 border border-gray-300 rounded-lg">
-          <input type="number" id="pm-promo" placeholder="特惠價" class="p-2 border border-gray-300 rounded-lg">
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="pm-orig" placeholder="原價" class="p-2.5 border border-gray-300 rounded-xl">
+          <input type="number" id="pm-promo" placeholder="特惠價" class="p-2.5 border border-gray-300 rounded-xl">
         </div>
-        <input type="text" id="pm-image" placeholder="圖片網址 (URL)" class="w-full p-2 border border-gray-300 rounded-lg">
-        <input type="text" id="pm-link" placeholder="分潤連結 (URL)" class="w-full p-2 border border-gray-300 rounded-lg">
-        <input type="text" id="pm-code" placeholder="特定優惠碼 (選填)" class="w-full p-2 border border-gray-300 rounded-lg">
+        <input type="text" id="pm-image" placeholder="圖片網址 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="pm-link" placeholder="分潤連結 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="pm-code" placeholder="特定優惠碼 (選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeProductModal()" class="px-4 py-2 bg-gray-100 rounded-lg text-xs">取消</button>
-        <button onclick="saveProduct()" class="px-4 py-2 bg-orange-500 text-white font-bold rounded-lg text-xs">儲存商品</button>
+        <button onclick="closeProductModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="saveProduct()" class="px-4 py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs">儲存商品</button>
       </div>
     </div>
   </div>
 
   <!-- 優惠券彈窗 (新增/編輯) -->
-  <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-      <h3 id="cm-title" class="text-base font-bold text-gray-900">新增全站優惠券</h3>
+  <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+      <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
       <input type="hidden" id="cm-id">
-      <div class="space-y-3 text-xs">
-        <input type="text" id="cm-code" placeholder="優惠碼 (如: SHOPEE100)" class="w-full p-2 border border-gray-300 rounded-lg font-mono uppercase">
-        <select id="cm-platform" class="w-full p-2 border border-gray-300 rounded-lg">
+      <div class="space-y-2.5 text-xs">
+        <input type="text" id="cm-code" placeholder="優惠碼" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono uppercase">
+        <select id="cm-platform" class="w-full p-2.5 border border-gray-300 rounded-xl">
           <option value="SHOPEE">蝦皮 Shopee</option>
           <option value="COUPANG">酷澎 Coupang</option>
         </select>
-        <input type="text" id="cm-desc" placeholder="說明 (如: 全站滿 $499 折 $50)" class="w-full p-2 border border-gray-300 rounded-lg">
-        <input type="text" id="cm-link" placeholder="專屬領券頁面連結 (URL，選填)" class="w-full p-2 border border-gray-300 rounded-lg">
+        <input type="text" id="cm-desc" placeholder="說明 (如: 滿 $499 折 $50)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="cm-link" placeholder="專屬領券連結 (URL，選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
       </div>
       <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeCodeModal()" class="px-4 py-2 bg-gray-100 rounded-lg text-xs">取消</button>
-        <button onclick="saveCode()" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg text-xs">儲存優惠券</button>
+        <button onclick="closeCodeModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="saveCode()" class="px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">儲存優惠券</button>
       </div>
     </div>
   </div>
@@ -185,7 +185,6 @@
       });
     }
 
-    // 只有在確認操作時才推送到 Firebase 進行同步儲存
     function pushToFirebase() {
       db.ref('yves_shop_data').set({
         products: productsList,
@@ -199,51 +198,47 @@
       const btnP = document.getElementById('btn-tab-products');
       const btnC = document.getElementById('btn-tab-codes');
       if (tab === 'products') {
-        btnP.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-all";
-        btnC.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-all";
+        btnP.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all";
+        btnC.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all";
       } else {
-        btnC.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-orange-500 text-orange-600 flex items-center gap-2 transition-all";
-        btnP.className = "px-5 py-2.5 font-bold text-sm border-b-2 border-transparent text-gray-500 hover:text-gray-700 flex items-center gap-2 transition-all";
+        btnC.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all";
+        btnP.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all";
       }
     }
 
     function renderAdminTables() {
       const pTbody = document.getElementById('product-table-body');
-      pTbody.innerHTML = productsList.length === 0 ? `<tr><td colspan="5" class="p-8 text-center text-gray-400 font-bold">目前無任何商品</td></tr>` : productsList.map(p => `
+      pTbody.innerHTML = productsList.length === 0 ? `<tr><td colspan="4" class="p-6 text-center text-gray-400 font-bold">無商品</td></tr>` : productsList.map(p => `
         <tr class="hover:bg-gray-50">
-          <td class="p-3.5 flex items-center gap-3">
-            <img src="${p.image}" class="w-10 h-10 rounded-lg object-cover">
-            <div><p class="font-bold text-gray-800 line-clamp-1">${p.name}</p><span class="text-[10px] text-gray-400">${p.category}</span></div>
+          <td class="p-3 flex items-center gap-2">
+            <img src="${p.image}" class="w-8 h-8 rounded object-cover flex-shrink-0">
+            <div class="truncate max-w-[120px] sm:max-w-xs"><p class="font-bold text-gray-800 truncate">${p.name}</p></div>
           </td>
-          <td class="p-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${p.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${p.platform}</span></td>
-          <td class="p-3.5 font-bold text-red-600">NT$ ${p.promoPrice} <span class="text-gray-400 line-through font-normal text-[11px]">NT$ ${p.originalPrice}</span></td>
-          <td class="p-3.5 font-mono text-xs">${p.code || '-'}</td>
-          <td class="p-3.5 text-center flex justify-center gap-2">
-            <button onclick="editProduct(${p.id})" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
-            <button onclick="deleteProduct(${p.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+          <td class="p-3"><span class="px-1.5 py-0.5 rounded text-[9px] font-black ${p.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${p.platform === 'SHOPEE' ? '蝦皮' : '酷澎'}</span></td>
+          <td class="p-3 font-bold text-red-600">NT$${p.promoPrice}</td>
+          <td class="p-3 text-center">
+            <button onclick="editProduct(${p.id})" class="p-1 text-blue-500"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteProduct(${p.id})" class="p-1 text-red-500 ml-1"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
       `).join('');
 
       const cTbody = document.getElementById('code-table-body');
-      cTbody.innerHTML = codesList.length === 0 ? `<tr><td colspan="6" class="p-8 text-center text-gray-400 font-bold">目前無任何優惠券</td></tr>` : codesList.map(c => `
+      cTbody.innerHTML = codesList.length === 0 ? `<tr><td colspan="4" class="p-6 text-center text-gray-400 font-bold">無優惠券</td></tr>` : codesList.map(c => `
         <tr class="hover:bg-gray-50">
-          <td class="p-3.5 font-mono font-bold text-gray-800">${c.code}</td>
-          <td class="p-3.5"><span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${c.platform}</span></td>
-          <td class="p-3.5 text-gray-700">${c.desc}</td>
-          <td class="p-3.5 text-gray-500 truncate max-w-[150px]">${c.link ? `<a href="${c.link}" target="_blank" class="text-blue-500 hover:underline">連結 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>` : '-'}</td>
-          <td class="p-3.5 text-center">
-            <button onclick="toggleCodeStatus(${c.id})" class="px-2 py-1 rounded text-[10px] font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用中' : '已停用'}</button>
+          <td class="p-3 font-mono font-bold text-gray-800">${c.code}</td>
+          <td class="p-3 text-gray-700 truncate max-w-[100px]">${c.desc}</td>
+          <td class="p-3 text-center">
+            <button onclick="toggleCodeStatus(${c.id})" class="px-1.5 py-0.5 rounded text-[9px] font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用' : '停用'}</button>
           </td>
-          <td class="p-3.5 text-center flex justify-center gap-2">
-            <button onclick="editCode(${c.id})" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg" title="編輯優惠券"><i class="fa-solid fa-pen"></i></button>
-            <button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500 hover:bg-red-50 rounded-lg" title="刪除優惠券"><i class="fa-solid fa-trash"></i></button>
+          <td class="p-3 text-center">
+            <button onclick="editCode(${c.id})" class="p-1 text-blue-500"><i class="fa-solid fa-pen"></i></button>
+            <button onclick="deleteCode(${c.id})" class="p-1 text-red-500 ml-1"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
       `).join('');
     }
 
-    /* --- 商品邏輯 --- */
     function openProductModal() {
       document.getElementById('pm-title').innerText = '新增商品';
       document.getElementById('pm-id').value = '';
@@ -277,7 +272,7 @@
     function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
     
     function saveProduct() {
-      if (!confirm('確定要儲存商品變更並更新至雲端嗎？')) return;
+      if (!confirm('確定儲存並更新至雲端？')) return;
 
       const editId = document.getElementById('pm-id').value;
       const productData = {
@@ -304,22 +299,21 @@
     }
 
     function deleteProduct(id) {
-      if (confirm('確定要刪除此商品嗎？')) {
+      if (confirm('確定刪除商品？')) {
         productsList = productsList.filter(p => p.id !== id);
         pushToFirebase();
       }
     }
 
     function clearAllProducts() {
-      if (confirm('⚠️ 警告：確定要清空所有商品嗎？此動作無法復原！')) {
+      if (confirm('⚠️ 確定清空所有商品？')) {
         productsList = [];
         pushToFirebase();
       }
     }
 
-    /* --- 優惠券邏輯 (新增/編輯/備份) --- */
     function openCodeModal() { 
-      document.getElementById('cm-title').innerText = '新增全站優惠券';
+      document.getElementById('cm-title').innerText = '新增優惠券';
       document.getElementById('cm-id').value = '';
       document.getElementById('cm-code').value = '';
       document.getElementById('cm-platform').value = 'SHOPEE';
@@ -331,7 +325,7 @@
     function editCode(id) {
       const c = codesList.find(x => x.id === id);
       if (!c) return;
-      document.getElementById('cm-title').innerText = '編輯全站優惠券';
+      document.getElementById('cm-title').innerText = '編輯優惠券';
       document.getElementById('cm-id').value = c.id;
       document.getElementById('cm-code').value = c.code;
       document.getElementById('cm-platform').value = c.platform;
@@ -343,7 +337,7 @@
     function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
     
     function saveCode() {
-      if (!confirm('確定要儲存優惠券變更並更新至雲端嗎？')) return;
+      if (!confirm('確定儲存優惠券？')) return;
 
       const editId = document.getElementById('cm-id').value;
       const codeData = {
@@ -375,14 +369,14 @@
     }
 
     function deleteCode(id) {
-      if (confirm('確定要刪除此優惠券嗎？')) {
+      if (confirm('確定刪除優惠券？')) {
         codesList = codesList.filter(c => c.id !== id);
         pushToFirebase();
       }
     }
 
     function clearAllCodes() {
-      if (confirm('⚠️ 警告：確定要清空所有優惠券嗎？此動作無法復原！')) {
+      if (confirm('⚠️ 確定清空所有優惠券？')) {
         codesList = [];
         pushToFirebase();
       }
