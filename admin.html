@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=12">
+  <link rel="icon" type="image/png" href="./favicon.png?v=14">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -33,7 +33,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=12" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=14" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
@@ -61,7 +61,6 @@
       <!-- 商品管理區 -->
       <section id="panel-products" class="space-y-3">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 gap-2.5">
-          <!-- 後台商品搜尋過濾 (順序 3) -->
           <div class="relative w-full sm:w-64">
             <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
             <input type="text" id="admin-search-input" oninput="renderAdminUI()" placeholder="搜尋後台商品..." class="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500">
@@ -144,7 +143,7 @@
     </div>
   </div>
 
-  <!-- 優惠券彈窗 -->
+  <!-- 優惠券彈窗 (新增/編輯) -->
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
       <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
@@ -157,6 +156,7 @@
         </select>
         <input type="text" id="cm-desc" placeholder="說明 (如: 滿 $499 折 $50)" class="w-full p-2.5 border border-gray-300 rounded-xl">
         <input type="text" id="cm-link" placeholder="專屬領券連結 (URL，選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="datetime-local" id="cm-expiry" class="w-full p-2.5 border border-gray-300 rounded-xl" title="優惠券倒數截止時間 (選填)">
       </div>
       <div class="flex justify-end gap-2 pt-2">
         <button onclick="closeCodeModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
@@ -174,10 +174,9 @@
       </div>
       <div class="space-y-3 text-xs text-gray-700">
         <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v3.0 (2026/10/24)</p>
-          <p class="text-gray-500">• 新增「限時動態倒數計時」與「商品熱門標籤」</p>
-          <p class="text-gray-500">• 新增右下角 LINE 社群浮動導流按鈕</p>
-          <p class="text-gray-500">• 後台新增商品搜尋關鍵字過濾與標籤/倒數設定</p>
+          <p class="font-bold text-gray-900">v3.1 (2026/10/24)</p>
+          <p class="text-gray-500">• 全站優惠券新增「限時倒數計時」功能</p>
+          <p class="text-gray-500">• 後台優惠券新增到期時間設定欄位</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -474,6 +473,7 @@
       document.getElementById('cm-platform').value = 'SHOPEE';
       document.getElementById('cm-desc').value = '';
       document.getElementById('cm-link').value = '';
+      document.getElementById('cm-expiry').value = '';
       document.getElementById('code-modal').classList.remove('hidden'); 
     }
 
@@ -486,6 +486,7 @@
       document.getElementById('cm-platform').value = c.platform;
       document.getElementById('cm-desc').value = c.desc;
       document.getElementById('cm-link').value = c.link || '';
+      document.getElementById('cm-expiry').value = c.expiry || '';
       document.getElementById('code-modal').classList.remove('hidden');
     }
 
@@ -501,6 +502,7 @@
         platform: document.getElementById('cm-platform').value,
         desc: document.getElementById('cm-desc').value || '全館優惠',
         link: document.getElementById('cm-link').value || '',
+        expiry: document.getElementById('cm-expiry').value || '',
         active: editId ? (codesList.find(x => x.id === Number(editId))?.active ?? true) : true
       };
 
@@ -540,7 +542,5 @@
     function openChangelog() { document.getElementById('changelog-modal').classList.remove('hidden'); }
     function closeChangelog() { document.getElementById('changelog-modal').classList.add('hidden'); }
   </script>
-</body>
-</html>
 </body>
 </html>
