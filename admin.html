@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=11">
+  <link rel="icon" type="image/png" href="./favicon.png?v=12">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -33,7 +33,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=11" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=12" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
@@ -49,7 +49,6 @@
     </header>
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
-      <!-- 頁籤切換 -->
       <div class="flex border-b border-gray-200 bg-white rounded-t-2xl px-2 sm:px-4 pt-2 gap-1 sm:gap-2">
         <button onclick="switchTab('products')" id="btn-tab-products" class="flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all">
           <i class="fa-solid fa-box-open"></i> 商品管理
@@ -62,10 +61,15 @@
       <!-- 商品管理區 -->
       <section id="panel-products" class="space-y-3">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 gap-2.5">
-          <h2 class="text-sm sm:text-base font-bold text-gray-800">特惠商品列表</h2>
+          <!-- 後台商品搜尋過濾 (順序 3) -->
+          <div class="relative w-full sm:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" id="admin-search-input" oninput="renderAdminUI()" placeholder="搜尋後台商品..." class="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+
           <div class="flex flex-wrap gap-1.5 w-full sm:w-auto">
-            <button onclick="exportJSON()" class="flex-1 sm:flex-none px-2.5 py-2 bg-emerald-100 active:bg-emerald-200 text-emerald-700 font-bold text-xs rounded-xl transition-all"><i class="fa-solid fa-download"></i> 備份</button>
-            <button onclick="document.getElementById('import-file').click()" class="flex-1 sm:flex-none px-2.5 py-2 bg-purple-100 active:bg-purple-200 text-purple-700 font-bold text-xs rounded-xl transition-all"><i class="fa-solid fa-upload"></i> 匯入</button>
+            <button onclick="exportJSON()" class="flex-1 sm:flex-none px-2.5 py-2 bg-emerald-100 active:bg-emerald-200 text-emerald-700 font-bold text-xs rounded-xl"><i class="fa-solid fa-download"></i> 備份</button>
+            <button onclick="document.getElementById('import-file').click()" class="flex-1 sm:flex-none px-2.5 py-2 bg-purple-100 active:bg-purple-200 text-purple-700 font-bold text-xs rounded-xl"><i class="fa-solid fa-upload"></i> 匯入</button>
             <input type="file" id="import-file" class="hidden" accept=".json" onchange="importJSON(event)">
             <button onclick="clearAllProducts()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button>
             <button onclick="openProductModal()" class="flex-grow sm:flex-none px-3 py-2 bg-orange-500 text-white font-bold text-xs rounded-xl shadow">+ 新增商品</button>
@@ -103,6 +107,15 @@
             <option value="COUPANG">酷澎 Coupang</option>
           </select>
           <input type="text" id="pm-category" placeholder="分類 (美食/3C)" class="p-2.5 border border-gray-300 rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <select id="pm-badge" class="p-2.5 border border-gray-300 rounded-xl font-bold">
+            <option value="NONE">熱門標籤：預設折扣</option>
+            <option value="HOT">🔥 熱銷爆款</option>
+            <option value="FLASH">⚡ 限時直降</option>
+            <option value="NEW">✨ 新上架</option>
+          </select>
+          <input type="datetime-local" id="pm-expiry" class="p-2.5 border border-gray-300 rounded-xl" title="限時倒數截止時間">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <input type="number" id="pm-orig" placeholder="原價" class="p-2.5 border border-gray-300 rounded-xl">
@@ -161,22 +174,10 @@
       </div>
       <div class="space-y-3 text-xs text-gray-700">
         <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v2.5 (2026/10/24)</p>
-          <p class="text-gray-500">• 全面新增全站「系統更新日誌」彈窗</p>
-          <p class="text-gray-500">• 整合 Google Analytics 4 (GA4) 流量追蹤</p>
-          <p class="text-gray-500">• 優化 Threads / IG / LINE 社群 Open Graph 分享縮圖</p>
-        </div>
-        <div class="border-l-2 border-blue-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v2.0 (2026/10)</p>
-          <p class="text-gray-500">• 後台新增「📌 一鍵置頂」與排序微調功能</p>
-          <p class="text-gray-500">• 後台新增一鍵匯出/匯入 JSON 備份功能</p>
-          <p class="text-gray-500">• 後台新增 Threads / IG 社群導購文案自動生成器</p>
-          <p class="text-gray-500">• 前台升級為動態抓取商品分類與 Mobile-First 手機體驗</p>
-        </div>
-        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v1.0 (2026/09)</p>
-          <p class="text-gray-500">• 完成 GitHub Pages + Firebase 即時資料庫建置</p>
-          <p class="text-gray-500">• 啟用後台 6 位數 PIN 碼安全解鎖與手動確認儲存機制</p>
+          <p class="font-bold text-gray-900">v3.0 (2026/10/24)</p>
+          <p class="text-gray-500">• 新增「限時動態倒數計時」與「商品熱門標籤」</p>
+          <p class="text-gray-500">• 新增右下角 LINE 社群浮動導流按鈕</p>
+          <p class="text-gray-500">• 後台新增商品搜尋關鍵字過濾與標籤/倒數設定</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -228,12 +229,7 @@
 
     function getNowFormatted() {
       const now = new Date();
-      const yyyy = now.getFullYear();
-      const mm = String(now.getMonth() + 1).padStart(2, '0');
-      const dd = String(now.getDate()).padStart(2, '0');
-      const hh = String(now.getHours()).padStart(2, '0');
-      const min = String(now.getMinutes()).padStart(2, '0');
-      return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+      return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
 
     function pushToFirebase() {
@@ -259,11 +255,16 @@
     }
 
     function renderAdminUI() {
+      const searchKey = (document.getElementById('admin-search-input')?.value || '').toLowerCase().trim();
       const pContainer = document.getElementById('products-container');
-      if (productsList.length === 0) {
-        pContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何商品</div>`;
+
+      const filtered = productsList.filter(p => p.name.toLowerCase().includes(searchKey) || p.category.toLowerCase().includes(searchKey));
+
+      if (filtered.length === 0) {
+        pContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">沒有找到符合條件的商品</div>`;
       } else {
-        pContainer.innerHTML = productsList.map((p, idx) => {
+        pContainer.innerHTML = filtered.map((p) => {
+          const idx = productsList.findIndex(x => x.id === p.id);
           const isShopee = p.platform === 'SHOPEE';
           return `
             <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -320,7 +321,6 @@
       }
     }
 
-    /* --- 順序調整與置頂邏輯 --- */
     function pinProduct(index) {
       if (index === 0) return;
       const target = productsList.splice(index, 1)[0];
@@ -337,7 +337,6 @@
       pushToFirebase();
     }
 
-    /* --- 文案生成邏輯 --- */
     function generateCopy(index) {
       const p = productsList[index];
       if (!p) return;
@@ -361,13 +360,8 @@
       closeCopyModal();
     }
 
-    /* --- JSON 備份與匯入邏輯 --- */
     function exportJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
-        products: productsList,
-        codes: codesList,
-        lastUpdated: getNowFormatted()
-      }, null, 2));
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ products: productsList, codes: codesList, lastUpdated: getNowFormatted() }, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
       downloadAnchor.setAttribute("download", `yves_shop_backup_${Date.now()}.json`);
@@ -389,20 +383,19 @@
             pushToFirebase();
             alert('✅ 匯入成功！');
           }
-        } catch (err) {
-          alert('❌ JSON 格式不正確，請檢查檔案！');
-        }
+        } catch (err) { alert('❌ JSON 格式不正確！'); }
       };
       reader.readAsText(file);
     }
 
-    /* --- CRUD 邏輯 --- */
     function openProductModal() {
       document.getElementById('pm-title').innerText = '新增商品';
       document.getElementById('pm-id').value = '';
       document.getElementById('pm-name').value = '';
       document.getElementById('pm-platform').value = 'SHOPEE';
       document.getElementById('pm-category').value = '';
+      document.getElementById('pm-badge').value = 'NONE';
+      document.getElementById('pm-expiry').value = '';
       document.getElementById('pm-orig').value = '';
       document.getElementById('pm-promo').value = '';
       document.getElementById('pm-image').value = '';
@@ -419,6 +412,8 @@
       document.getElementById('pm-name').value = p.name;
       document.getElementById('pm-platform').value = p.platform;
       document.getElementById('pm-category').value = p.category;
+      document.getElementById('pm-badge').value = p.badge || 'NONE';
+      document.getElementById('pm-expiry').value = p.expiry || '';
       document.getElementById('pm-orig').value = p.originalPrice;
       document.getElementById('pm-promo').value = p.promoPrice;
       document.getElementById('pm-image').value = p.image;
@@ -438,6 +433,8 @@
         name: document.getElementById('pm-name').value || '未命名商品',
         platform: document.getElementById('pm-platform').value,
         category: document.getElementById('pm-category').value || '未分類',
+        badge: document.getElementById('pm-badge').value,
+        expiry: document.getElementById('pm-expiry').value,
         originalPrice: Number(document.getElementById('pm-orig').value) || 0,
         promoPrice: Number(document.getElementById('pm-promo').value) || 0,
         image: document.getElementById('pm-image').value || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80',
@@ -543,5 +540,7 @@
     function openChangelog() { document.getElementById('changelog-modal').classList.remove('hidden'); }
     function closeChangelog() { document.getElementById('changelog-modal').classList.add('hidden'); }
   </script>
+</body>
+</html>
 </body>
 </html>
