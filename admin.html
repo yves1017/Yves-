@@ -6,7 +6,7 @@
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
-  <link rel="icon" type="image/png" href="./favicon.png?v=74">
+  <link rel="icon" type="image/png" href="./favicon.png?v=75">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -53,7 +53,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=74" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=75" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
@@ -149,11 +149,10 @@
     </div>
   </div>
 
-  <!-- 16:9 圖片預覽彈窗 -->
   <div id="canvas-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-4 shadow-2xl space-y-3 flex flex-col items-center">
       <div class="flex justify-between items-center w-full">
-        <h3 class="text-sm font-bold text-gray-900"><i class="fa-solid fa-wand-magic-sparkles text-orange-500"></i> 社群推廣圖片 (16:9 排版)</h3>
+        <h3 class="text-sm font-bold text-gray-900"><i class="fa-solid fa-wand-magic-sparkles text-orange-500"></i> 社群推廣圖片 (16:9 滿版)</h3>
         <button onclick="closeCanvasModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="w-full aspect-[16/9] bg-gray-100 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
@@ -173,6 +172,27 @@
       </div>
       <textarea id="copy-text" rows="8" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-mono bg-gray-50 focus:bg-white focus:outline-none"></textarea>
       <button onclick="copyGeneratedText()" class="w-full py-3 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-xs shadow">複製整段文案</button>
+    </div>
+  </div>
+
+  <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
+      <input type="hidden" id="cm-id">
+      <div class="space-y-2.5 text-xs">
+        <input type="text" id="cm-code" placeholder="優惠碼" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono uppercase">
+        <select id="cm-platform" class="w-full p-2.5 border border-gray-300 rounded-xl">
+          <option value="SHOPEE">蝦皮 Shopee</option>
+          <option value="COUPANG">酷澎 Coupang</option>
+        </select>
+        <input type="text" id="cm-desc" placeholder="說明 (如: 滿 $499 折 $50)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="cm-link" placeholder="專屬領券連結 (URL，選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="datetime-local" id="cm-expiry" class="w-full p-2.5 border border-gray-300 rounded-xl" title="優惠券倒數截止時間 (選填)">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeCodeModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="saveCode()" class="px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">儲存優惠券</button>
+      </div>
     </div>
   </div>
 
@@ -261,6 +281,29 @@
       });
     }
 
+    function sendDiscordWebhook(webhookUrl, product) {
+      if (!webhookUrl) return;
+      const content = {
+        embeds: [{
+          title: `🔥【Yves 嚴選特惠】${product.name}`,
+          url: product.link,
+          color: product.platform === 'SHOPEE' ? 16737792 : 255,
+          fields: [
+            { name: "💰 特惠價", value: `**NT$ ${product.promoPrice}** (原價 $${product.originalPrice})`, inline: true },
+            { name: "🏷️ 平台", value: product.platform, inline: true },
+            { name: "🎟️ 優惠碼", value: product.code || "無", inline: true }
+          ],
+          image: { url: product.image },
+          footer: { text: "Yves 嚴選特惠 - 導購連結與優惠即時更新" }
+        }]
+      };
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      }).catch(err => console.error(err));
+    }
+
     function switchTab(tab) {
       document.getElementById('panel-products').classList.toggle('hidden', tab !== 'products');
       document.getElementById('panel-codes').classList.toggle('hidden', tab !== 'codes');
@@ -311,9 +354,46 @@
           `;
         }).join('');
       }
+
+      const cContainer = document.getElementById('codes-container');
+      if (codesList.length === 0) {
+        cContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何優惠券</div>`;
+      } else {
+        cContainer.innerHTML = codesList.map(c => `
+          <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-black text-xs sm:text-sm text-gray-900">${c.code}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${c.platform}</span>
+              </div>
+              <p class="text-xs text-gray-600 mt-1">${c.desc}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleCodeStatus(${c.id})" class="px-2.5 py-1 rounded-lg text-xs font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用中' : '已停用'}</button>
+              <button onclick="editCode(${c.id})" class="p-1.5 text-blue-500"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `).join('');
+      }
     }
 
-    // Canvas 16:9 高畫質橫向排版核心演算法
+    function pinProduct(index) {
+      if (index === 0) return;
+      const target = productsList.splice(index, 1)[0];
+      productsList.unshift(target);
+      pushToFirebase();
+    }
+
+    function moveProduct(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= productsList.length) return;
+      const temp = productsList[index];
+      productsList[index] = productsList[newIndex];
+      productsList[newIndex] = temp;
+      pushToFirebase();
+    }
+
     function generateStoryCanvas(index) {
       const p = productsList[index];
       if (!p) return;
@@ -322,109 +402,121 @@
       const canvas = document.getElementById('story-canvas');
       const ctx = canvas.getContext('2d');
 
-      // 漸層深暗色背景 (#0f172a ➔ #1e293b ➔ #0f172a)
       const grad = ctx.createLinearGradient(0, 0, 0, 1080);
-      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(0, '#0b1329');
       grad.addColorStop(0.5, '#1e293b');
-      grad.addColorStop(1, '#0f172a');
+      grad.addColorStop(1, '#0b1329');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 1920, 1080);
 
-      // 左上角品牌資訊
       ctx.fillStyle = '#f97316';
-      ctx.font = 'bold 58px sans-serif';
-      ctx.fillText('Yves 嚴選特惠', 100, 150);
+      ctx.font = 'black 56px sans-serif';
+      ctx.fillText('Yves 嚴選特惠', 90, 120);
 
       ctx.fillStyle = '#94a3b8';
-      ctx.font = '34px sans-serif';
-      ctx.fillText('蝦皮 Shopee × 酷澎 Coupang 限時爆款', 100, 210);
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText('蝦皮 Shopee × 酷澎 Coupang 限時爆款', 90, 175);
 
-      // 載入商品主圖（跨域相容模式）
       const img = new Image();
       img.crossOrigin = 'Anonymous';
       img.src = p.image || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80';
 
       img.onload = () => {
-        // 左側圓角白色商品圖片框
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
-        ctx.roundRect(100, 270, 720, 720, 40);
+        ctx.roundRect(90, 220, 640, 640, 36);
         ctx.fill();
 
         ctx.save();
         ctx.beginPath();
-        ctx.roundRect(115, 285, 690, 690, 30);
+        ctx.roundRect(105, 235, 610, 610, 28);
         ctx.clip();
-        ctx.drawImage(img, 115, 285, 690, 690);
+        ctx.drawImage(img, 105, 235, 610, 610);
         ctx.restore();
 
-        // 右側圓角資訊大卡片
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
         ctx.beginPath();
-        ctx.roundRect(880, 130, 940, 840, 40);
+        ctx.roundRect(760, 90, 1070, 880, 40);
         ctx.fill();
 
-        // 卡片內 - 商品名稱（雙行截斷相容）
-        ctx.fillStyle = '#0f172a';
-        ctx.font = 'bold 54px sans-serif';
+        const startX = 820;
+        let currentY = 175;
+
         const rawName = p.name || '精選特惠商品';
-        let line1 = rawName;
-        let line2 = '';
-        if (rawName.length > 15) {
-          line1 = rawName.substring(0, 14);
-          line2 = rawName.substring(14, 28) + (rawName.length > 28 ? '...' : '');
-        }
-        ctx.fillText(line1, 950, 240);
-        if (line2) {
-          ctx.fillText(line2, 950, 320);
-        }
+        let fontSize = 46;
+        if (rawName.length > 35) fontSize = 38;
+        if (rawName.length > 50) fontSize = 32;
 
-        // 卡片內 - 破盤特價 NT$ 
+        ctx.fillStyle = '#0f172a';
+        ctx.font = `bold ${fontSize}px sans-serif`;
+
+        const maxWidth = 950;
+        let words = rawName.split('');
+        let line = '';
+
+        for (let n = 0; n < words.length; n++) {
+          let testLine = line + words[n];
+          let metrics = ctx.measureText(testLine);
+          if (metrics.width > maxWidth && n > 0) {
+            ctx.fillText(line, startX, currentY);
+            line = words[n];
+            currentY += fontSize + 16;
+          } else {
+            line = testLine;
+          }
+        }
+        ctx.fillText(line, startX, currentY);
+        currentY += fontSize + 40;
+
+        const promoStr = `NT$ ${p.promoPrice}`;
         ctx.fillStyle = '#dc2626';
-        ctx.font = 'black 96px sans-serif';
-        ctx.fillText(`NT$ ${p.promoPrice}`, 950, 480);
+        ctx.font = 'black 80px sans-serif';
+        ctx.fillText(promoStr, startX, currentY);
 
-        // 卡片內 - 刪除線原價
+        const promoWidth = ctx.measureText(promoStr).width;
+
         if (p.originalPrice > 0) {
-          ctx.fillStyle = '#64748b';
-          ctx.font = '42px sans-serif';
           const origText = `原價 $${p.originalPrice}`;
-          ctx.fillText(origText, 1400, 470);
-          
-          // 繪製原價刪除線
-          const textWidth = ctx.measureText(origText).width;
+          const origX = startX + promoWidth + 40;
+          const origY = currentY - 15;
+
+          ctx.fillStyle = '#64748b';
+          ctx.font = 'bold 38px sans-serif';
+          ctx.fillText(origText, origX, origY);
+
+          const origWidth = ctx.measureText(origText).width;
           ctx.strokeStyle = '#64748b';
           ctx.lineWidth = 4;
           ctx.beginPath();
-          ctx.moveTo(1400, 455);
-          ctx.lineTo(1400 + textWidth, 455);
+          ctx.moveTo(origX, origY - 12);
+          ctx.lineTo(origX + origWidth, origY - 12);
           ctx.stroke();
         }
 
-        // 卡片內 - 直降現省標籤
+        currentY += 75;
+
         const diff = p.originalPrice - p.promoPrice;
         if (diff > 0) {
           ctx.fillStyle = '#10b981';
-          ctx.font = 'bold 44px sans-serif';
-          ctx.fillText(`🔥 直降現省 $${diff}`, 950, 580);
+          ctx.font = 'bold 40px sans-serif';
+          ctx.fillText(`🔥 直降現省 $${diff}`, startX, currentY);
+          currentY += 65;
         }
 
-        // 卡片內 - 獨家券碼
         if (p.code) {
           ctx.fillStyle = '#ea580c';
-          ctx.font = 'bold 44px sans-serif';
-          ctx.fillText(`🎟️ 獨家券碼 : ${p.code}`, 950, 680);
+          ctx.font = 'bold 40px sans-serif';
+          ctx.fillText(`🎟️ 獨家券碼 : ${p.code}`, startX, currentY);
+          currentY += 65;
         }
 
-        // 卡片內最下方引導
         ctx.fillStyle = '#0284c7';
         ctx.font = 'bold 38px sans-serif';
-        ctx.fillText('👉 限時特惠連結在上方 / 留言區！', 950, 830);
+        ctx.fillText('👉 限時特惠連結在上方 / 留言區！', startX, 910);
 
-        // 底部常設水印引導
         ctx.fillStyle = '#facc15';
-        ctx.font = 'bold 36px sans-serif';
-        ctx.fillText('👉 限時特惠連結在上方 / 留言區！', 880, 1020);
+        ctx.font = 'bold 40px sans-serif';
+        ctx.fillText('👉 限時特惠連結在上方 / 留言區！', 90, 930);
 
         document.getElementById('canvas-modal').classList.remove('hidden');
       };
@@ -545,6 +637,11 @@
         clicks: editId ? (productsList.find(x => x.id === Number(editId))?.clicks || 0) : 0
       };
 
+      const webhookUrl = document.getElementById('pm-webhook').value.trim();
+      if (webhookUrl) {
+        sendDiscordWebhook(webhookUrl, productData);
+      }
+
       if (editId) {
         const idx = productsList.findIndex(x => x.id === Number(editId));
         if (idx !== -1) productsList[idx] = productData;
@@ -566,6 +663,79 @@
     function clearAllProducts() {
       if (confirm('⚠️ 確定清空所有商品？')) {
         productsList = [];
+        pushToFirebase();
+      }
+    }
+
+    function openCodeModal() { 
+      document.getElementById('cm-title').innerText = '新增優惠券';
+      document.getElementById('cm-id').value = '';
+      document.getElementById('cm-code').value = '';
+      document.getElementById('cm-platform').value = 'SHOPEE';
+      document.getElementById('cm-desc').value = '';
+      document.getElementById('cm-link').value = '';
+      document.getElementById('cm-expiry').value = '';
+      document.getElementById('code-modal').classList.remove('hidden'); 
+    }
+
+    function editCode(id) {
+      const c = codesList.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('cm-title').innerText = '編輯優惠券';
+      document.getElementById('cm-id').value = c.id;
+      document.getElementById('cm-code').value = c.code;
+      document.getElementById('cm-platform').value = c.platform;
+      document.getElementById('cm-desc').value = c.desc;
+      document.getElementById('cm-link').value = c.link || '';
+      document.getElementById('cm-expiry').value = c.expiry || '';
+      document.getElementById('code-modal').classList.remove('hidden');
+    }
+
+    function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
+    
+    function saveCode() {
+      if (!confirm('確定儲存優惠券？')) return;
+
+      const editId = document.getElementById('cm-id').value;
+      const codeData = {
+        id: editId ? Number(editId) : Date.now(),
+        code: document.getElementById('cm-code').value.toUpperCase(),
+        platform: document.getElementById('cm-platform').value,
+        desc: document.getElementById('cm-desc').value || '全館優惠',
+        link: document.getElementById('cm-link').value || '',
+        expiry: document.getElementById('cm-expiry').value || '',
+        active: editId ? (codesList.find(x => x.id === Number(editId))?.active ?? true) : true
+      };
+
+      if (editId) {
+        const idx = codesList.findIndex(x => x.id === Number(editId));
+        if (idx !== -1) codesList[idx] = codeData;
+      } else {
+        codesList.unshift(codeData);
+      }
+
+      pushToFirebase();
+      closeCodeModal();
+    }
+
+    function toggleCodeStatus(id) {
+      const c = codesList.find(x => x.id === id);
+      if (c) {
+        c.active = !c.active;
+        pushToFirebase();
+      }
+    }
+
+    function deleteCode(id) {
+      if (confirm('確定刪除優惠券？')) {
+        codesList = codesList.filter(c => c.id !== id);
+        pushToFirebase();
+      }
+    }
+
+    function clearAllCodes() {
+      if (confirm('⚠️ 確定清空所有優惠券？')) {
+        codesList = [];
         pushToFirebase();
       }
     }
