@@ -5,11 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 蝦皮/酷澎 精選好康折扣碼</title>
   
-  <!-- 安全資安標頭 (CSP) 防範 XSS 與非法外掛腳本 -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
-  <link rel="icon" type="image/png" href="./favicon.png?v=52">
+  <link rel="icon" type="image/png" href="./favicon.png?v=60">
 
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
   <meta name="keywords" content="Yves嚴選特惠, 蝦皮優惠碼, 酷澎折扣碼, Shopee特價, Coupang好康">
@@ -47,7 +46,7 @@
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=52" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=60" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -117,7 +116,7 @@
     <p>© 2026 Yves 嚴選特惠 | 導購連結與優惠即時更新</p>
     <p id="last-updated-footer" class="text-gray-500 text-[10px] font-mono">最後更新時間：載入中...</p>
     <button onclick="openChangelog()" class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-[10px] font-bold transition-all border border-gray-700">
-      <i class="fa-solid fa-shield-halved text-emerald-400"></i> 資安防護說明與日誌
+      <i class="fa-solid fa-shield-halved text-emerald-400"></i> 系統更新日誌 (v6.0 旗艦版)
     </button>
   </footer>
 
@@ -128,10 +127,11 @@
         <button onclick="closeChangelog()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="space-y-3 text-xs text-gray-700">
-        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v5.1 資安防護版 (2026/10/25)</p>
-          <p class="text-gray-500">• 導入 CSP 資安標頭與 XSS 安全字元淨化</p>
-          <p class="text-gray-500">• 後台啟用 SHA-256 哈希加密與防爆破登入鎖定機制</p>
+        <div class="border-l-2 border-orange-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v6.0 旗艦自動化版 (2026/10/25)</p>
+          <p class="text-gray-500">• 前台啟用「🏆 點擊熱度 TOP 3 冠軍勳章」機制</p>
+          <p class="text-gray-500">• 後台整合 Discord / Telegram Webhook 自動推播</p>
+          <p class="text-gray-500">• 支援 GitHub Actions 每日過期商品自動清理工作流</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -139,15 +139,9 @@
   </div>
 
   <script>
-    // XSS 防禦：HTML 字元轉義
     function sanitize(str) {
       if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     const firebaseConfig = {
@@ -245,6 +239,15 @@
       return expiryTime <= now;
     }
 
+    function trackClick(productId) {
+      if (!productId) return;
+      const p = storeData.products.find(x => x.id === productId);
+      if (p) {
+        p.clicks = (p.clicks || 0) + 1;
+        db.ref('yves_shop_data/products').set(storeData.products);
+      }
+    }
+
     function renderStorefront() {
       const updateStr = storeData.lastUpdated ? sanitize(storeData.lastUpdated) : '尚無更新紀錄';
       document.getElementById('last-updated-tag').innerText = `最後更新：${updateStr}`;
@@ -284,6 +287,12 @@
           `).join('');
       }
 
+      // 排序點擊數以計算排名榜
+      const sortedByClicks = [...(storeData.products || [])].sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
+      const top1Id = sortedByClicks[0]?.clicks > 0 ? sortedByClicks[0]?.id : null;
+      const top2Id = sortedByClicks[1]?.clicks > 0 ? sortedByClicks[1]?.id : null;
+      const top3Id = sortedByClicks[2]?.clicks > 0 ? sortedByClicks[2]?.id : null;
+
       const filtered = (storeData.products || []).filter(p => {
         if (isExpired(p.expiry)) return false;
         const matchPlatform = currentPlatform === 'ALL' || p.platform === currentPlatform;
@@ -304,7 +313,10 @@
             const isShopee = p.platform === 'SHOPEE';
             
             let badgeHtml = '';
-            if (p.badge === 'HOT') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white shadow-md">🔥 熱銷爆款</span>`;
+            if (p.id === top1Id) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-400 text-gray-900 shadow-md">🏆 熱銷 NO.1</span>`;
+            else if (p.id === top2Id) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-slate-300 text-gray-900 shadow-md">🥈 熱銷 NO.2</span>`;
+            else if (p.id === top3Id) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-700 text-white shadow-md">🥉 熱銷 NO.3</span>`;
+            else if (p.badge === 'HOT') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white shadow-md">🔥 熱銷爆款</span>`;
             else if (p.badge === 'FLASH') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-500 text-white shadow-md">⚡ 限時直降</span>`;
             else if (p.badge === 'NEW') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-emerald-600 text-white shadow-md">✨ 新上架</span>`;
             else if (discount > 0) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-red-600 text-white shadow-md">-${discount}%</span>`;
@@ -331,10 +343,10 @@
                     </div>
                     
                     ${p.expiry ? `<div class="mt-1.5 text-[10px] bg-rose-100/90 text-rose-700 px-2.5 py-1.5 rounded-md border border-rose-300 font-mono font-extrabold shadow-sm countdown-timer" data-expiry="${sanitize(p.expiry)}">⏳ 載入倒數...</div>` : ''}
-                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${sanitize(p.code)}</strong></span><button onclick="copyAndRedirect('${sanitize(p.code)}', '${sanitize(p.link)}')" class="text-orange-600 font-bold hover:underline">複製並前往</button></div>` : ''}
+                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${sanitize(p.code)}</strong></span><button onclick="copyAndRedirect('${sanitize(p.code)}', '${sanitize(p.link)}', ${p.id})" class="text-orange-600 font-bold hover:underline">複製並前往</button></div>` : ''}
                     
                     <div class="mt-2.5 flex gap-1.5">
-                      <a href="${sanitize(p.link || '#')}" target="_blank" rel="noopener noreferrer" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
+                      <a href="${sanitize(p.link || '#')}" onclick="trackClick(${p.id})" target="_blank" rel="noopener noreferrer" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
                       <button onclick="shareProduct('${sanitize(p.name)}', '${p.promoPrice}', '${sanitize(p.link)}')" class="px-2.5 py-2 bg-gray-100 active:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition-all" title="分享商品"><i class="fa-solid fa-share-nodes"></i></button>
                     </div>
                   </div>
@@ -369,7 +381,8 @@
       }
     }
 
-    function copyAndRedirect(code, targetUrl) {
+    function copyAndRedirect(code, targetUrl, productId) {
+      if (productId) trackClick(productId);
       if (code) {
         navigator.clipboard.writeText(code);
       }
