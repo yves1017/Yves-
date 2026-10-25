@@ -6,7 +6,7 @@
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
-  <link rel="icon" type="image/png" href="./favicon.png?v=79">
+  <link rel="icon" type="image/png" href="./favicon.png?v=80">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -53,7 +53,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=79" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=80" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
@@ -146,21 +146,6 @@
         <button onclick="closeProductModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
         <button onclick="saveProduct()" class="px-4 py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs">儲存並同步</button>
       </div>
-    </div>
-  </div>
-
-  <div id="canvas-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-2xl w-full p-4 shadow-2xl space-y-3 flex flex-col items-center">
-      <div class="flex justify-between items-center w-full">
-        <h3 class="text-sm font-bold text-gray-900"><i class="fa-solid fa-wand-magic-sparkles text-orange-500"></i> 社群推廣圖片 (16:9 極致排版)</h3>
-        <button onclick="closeCanvasModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-      <div class="w-full aspect-[16/9] bg-gray-100 rounded-xl overflow-hidden shadow-inner flex items-center justify-center">
-        <canvas id="story-canvas" width="1920" height="1080" class="w-full h-full object-contain"></canvas>
-      </div>
-      <button onclick="downloadStoryImage()" class="w-full py-2.5 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
-        <i class="fa-solid fa-download"></i> 下載 16:9 高畫質宣傳圖
-      </button>
     </div>
   </div>
 
@@ -300,7 +285,6 @@
 
     let productsList = [];
     let codesList = [];
-    let currentStoryProduct = null;
 
     function initRealtimeSync() {
       db.ref('yves_shop_data').on('value', (snapshot) => {
@@ -392,8 +376,7 @@
                 </div>
                 
                 <div class="flex items-center gap-1.5">
-                  <button onclick="generateStoryCanvas(${idx})" class="px-2 py-1.5 bg-purple-100 text-purple-700 rounded-lg font-bold text-xs active:bg-purple-200" title="生成 16:9 圖片"><i class="fa-solid fa-wand-magic-sparkles"></i> 圖片</button>
-                  <button onclick="generateCopy(${idx})" class="px-2 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-xs active:bg-orange-200"><i class="fa-regular fa-copy"></i> 文案</button>
+                  <button onclick="generateCopy(${idx})" class="px-2.5 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-xs active:bg-orange-200"><i class="fa-regular fa-copy"></i> 文案</button>
                   <button onclick="editProduct(${p.id})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
                   <button onclick="deleteProduct(${p.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -440,192 +423,6 @@
       productsList[index] = productsList[newIndex];
       productsList[newIndex] = temp;
       pushToFirebase();
-    }
-
-    // 已取消「點我搶購！」按鈕，專注呈現連結指引
-    function generateStoryCanvas(index) {
-      const p = productsList[index];
-      if (!p) return;
-      currentStoryProduct = p;
-
-      const canvas = document.getElementById('story-canvas');
-      const ctx = canvas.getContext('2d');
-
-      // 背景深藍色漸層
-      const grad = ctx.createLinearGradient(0, 0, 0, 1080);
-      grad.addColorStop(0, '#0b1329');
-      grad.addColorStop(0.5, '#1e293b');
-      grad.addColorStop(1, '#0b1329');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, 1920, 1080);
-
-      // 慶祝彩帶與點綴
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
-      ctx.beginPath();
-      ctx.arc(1800, 100, 12, 0, Math.PI * 2);
-      ctx.arc(1750, 180, 8, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 左上角 Header Logo
-      ctx.fillStyle = '#f97316';
-      ctx.font = 'black 54px sans-serif';
-      ctx.fillText('Yves 嚴選特惠 🎁', 90, 115);
-
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 32px sans-serif';
-      ctx.fillText('蝦皮 Shopee × 酷澎 Coupang 限時爆款', 90, 170);
-
-      // 載入商品圖
-      const img = new Image();
-      img.crossOrigin = 'Anonymous';
-      img.src = p.image || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80';
-
-      img.onload = () => {
-        // 左側商品框
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.roundRect(90, 215, 650, 650, 36);
-        ctx.fill();
-
-        ctx.save();
-        ctx.beginPath();
-        ctx.roundRect(105, 230, 620, 620, 28);
-        ctx.clip();
-        ctx.drawImage(img, 105, 230, 620, 620);
-        ctx.restore();
-
-        // 左側下方黃字引導
-        ctx.fillStyle = '#facc15';
-        ctx.font = 'black 48px sans-serif';
-        ctx.fillText('點擊上方連結 / 留言區 👆', 90, 940);
-
-        // 右側圓角資訊大白卡
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
-        ctx.beginPath();
-        ctx.roundRect(780, 80, 1050, 890, 44);
-        ctx.fill();
-
-        const startX = 840;
-        let currentY = 180;
-
-        // 獨立橘紅色平台標籤【蝦皮直營】
-        const platformTag = p.platform === 'SHOPEE' ? '【蝦皮直營】' : '【酷澎嚴選】';
-        ctx.fillStyle = '#ef4444';
-        ctx.beginPath();
-        ctx.roundRect(startX, currentY - 55, 340, 75, 20);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 42px sans-serif';
-        ctx.fillText(platformTag, startX + 20, currentY);
-
-        currentY += 100;
-
-        // 商品名稱主標題
-        const rawName = p.name || '精選特惠商品';
-        let fontSize = 52;
-        if (rawName.length > 30) fontSize = 42;
-        if (rawName.length > 45) fontSize = 34;
-
-        ctx.fillStyle = '#0f172a';
-        ctx.font = `black ${fontSize}px sans-serif`;
-
-        const maxWidth = 930;
-        let words = rawName.split('');
-        let line = '';
-
-        for (let n = 0; n < words.length; n++) {
-          let testLine = line + words[n];
-          let metrics = ctx.measureText(testLine);
-          if (metrics.width > maxWidth && n > 0) {
-            ctx.fillText(line, startX, currentY);
-            line = words[n];
-            currentY += fontSize + 18;
-          } else {
-            line = testLine;
-          }
-        }
-        ctx.fillText(line, startX, currentY);
-        currentY += fontSize + 25;
-
-        // 灰色分類副標題
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = 'bold 36px sans-serif';
-        ctx.fillText(`${p.category || '熱銷必買'} · 破盤特價 · 限時好康`, startX, currentY);
-
-        currentY += 110;
-
-        // 特價大字 NT$ 5
-        const promoStr = `NT$ ${p.promoPrice}`;
-        ctx.fillStyle = '#dc2626';
-        ctx.font = 'black 105px sans-serif';
-        ctx.fillText(promoStr, startX, currentY);
-
-        const promoWidth = ctx.measureText(promoStr).width;
-
-        // 超殺價標籤
-        ctx.fillStyle = '#dc2626';
-        ctx.font = 'bold 48px sans-serif';
-        ctx.fillText('🔥超殺價', startX + promoWidth + 30, currentY - 10);
-
-        currentY += 100;
-
-        // 原價與直降現省
-        if (p.originalPrice > 0) {
-          const origText = `原價 $${p.originalPrice}`;
-          ctx.fillStyle = '#64748b';
-          ctx.font = 'bold 46px sans-serif';
-          ctx.fillText(origText, startX, currentY);
-
-          const origWidth = ctx.measureText(origText).width;
-          ctx.strokeStyle = '#64748b';
-          ctx.lineWidth = 5;
-          ctx.beginPath();
-          ctx.moveTo(startX, currentY - 15);
-          ctx.lineTo(startX + origWidth, currentY - 15);
-          ctx.stroke();
-
-          const diff = p.originalPrice - p.promoPrice;
-          if (diff > 0) {
-            const saveText = `🔥 直降現省 $${diff}`;
-            const boxX = startX + origWidth + 35;
-            
-            ctx.strokeStyle = '#10b981';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.roundRect(boxX, currentY - 55, 410, 72, 18);
-            ctx.stroke();
-
-            ctx.fillStyle = '#10b981';
-            ctx.font = 'bold 40px sans-serif';
-            ctx.fillText(saveText, boxX + 20, currentY - 5);
-          }
-        }
-
-        currentY += 120;
-
-        // 單獨保留大號深藍色連結指引按鈕（取消黃色點我搶購）
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.roundRect(startX, currentY - 55, 930, 85, 42);
-        ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'black 40px sans-serif';
-        ctx.fillText('👉 限時特惠連結在上方與留言區 👆', startX + 130, currentY + 2);
-
-        document.getElementById('canvas-modal').classList.remove('hidden');
-      };
-
-      img.onerror = () => { alert('❌ 圖片加載失敗，無法生成。'); };
-    }
-
-    function closeCanvasModal() { document.getElementById('canvas-modal').classList.add('hidden'); }
-
-    function downloadStoryImage() {
-      const canvas = document.getElementById('story-canvas');
-      const link = document.createElement('a');
-      link.download = `yves_16_9_${currentStoryProduct ? currentStoryProduct.id : Date.now()}.png`;
-      link.href = canvas.toDataURL('image/png');
-      link.click();
     }
 
     function generateCopy(index) {
