@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Yves 嚴選特惠 - 高強度安全後台</title>
+  <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
-  <link rel="icon" type="image/png" href="./favicon.png?v=76">
+  <link rel="icon" type="image/png" href="./favicon.png?v=77">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -53,7 +53,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=76" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=77" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理 (安全連線)</h1>
         </div>
@@ -444,7 +444,7 @@
       pushToFirebase();
     }
 
-    // 完美比照附圖的 16:9 Canvas 繪圖演算法
+    // 完美比照附圖視覺的 16:9 Canvas 繪圖演算法
     function generateStoryCanvas(index) {
       const p = productsList[index];
       if (!p) return;
@@ -453,7 +453,7 @@
       const canvas = document.getElementById('story-canvas');
       const ctx = canvas.getContext('2d');
 
-      // 背景深色漸層
+      // 深藍背景漸層
       const grad = ctx.createLinearGradient(0, 0, 0, 1080);
       grad.addColorStop(0, '#0b1329');
       grad.addColorStop(0.5, '#1e293b');
@@ -762,6 +762,79 @@
     function clearAllProducts() {
       if (confirm('⚠️ 確定清空所有商品？')) {
         productsList = [];
+        pushToFirebase();
+      }
+    }
+
+    function openCodeModal() { 
+      document.getElementById('cm-title').innerText = '新增優惠券';
+      document.getElementById('cm-id').value = '';
+      document.getElementById('cm-code').value = '';
+      document.getElementById('cm-platform').value = 'SHOPEE';
+      document.getElementById('cm-desc').value = '';
+      document.getElementById('cm-link').value = '';
+      document.getElementById('cm-expiry').value = '';
+      document.getElementById('code-modal').classList.remove('hidden'); 
+    }
+
+    function editCode(id) {
+      const c = codesList.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('cm-title').innerText = '編輯優惠券';
+      document.getElementById('cm-id').value = c.id;
+      document.getElementById('cm-code').value = c.code;
+      document.getElementById('cm-platform').value = c.platform;
+      document.getElementById('cm-desc').value = c.desc;
+      document.getElementById('cm-link').value = c.link || '';
+      document.getElementById('cm-expiry').value = c.expiry || '';
+      document.getElementById('code-modal').classList.remove('hidden');
+    }
+
+    function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
+    
+    function saveCode() {
+      if (!confirm('確定儲存優惠券？')) return;
+
+      const editId = document.getElementById('cm-id').value;
+      const codeData = {
+        id: editId ? Number(editId) : Date.now(),
+        code: document.getElementById('cm-code').value.toUpperCase(),
+        platform: document.getElementById('cm-platform').value,
+        desc: document.getElementById('cm-desc').value || '全館優惠',
+        link: document.getElementById('cm-link').value || '',
+        expiry: document.getElementById('cm-expiry').value || '',
+        active: editId ? (codesList.find(x => x.id === Number(editId))?.active ?? true) : true
+      };
+
+      if (editId) {
+        const idx = codesList.findIndex(x => x.id === Number(editId));
+        if (idx !== -1) codesList[idx] = codeData;
+      } else {
+        codesList.unshift(codeData);
+      }
+
+      pushToFirebase();
+      closeCodeModal();
+    }
+
+    function toggleCodeStatus(id) {
+      const c = codesList.find(x => x.id === id);
+      if (c) {
+        c.active = !c.active;
+        pushToFirebase();
+      }
+    }
+
+    function deleteCode(id) {
+      if (confirm('確定刪除優惠券？')) {
+        codesList = codesList.filter(c => c.id !== id);
+        pushToFirebase();
+      }
+    }
+
+    function clearAllCodes() {
+      if (confirm('⚠️ 確定清空所有優惠券？')) {
+        codesList = [];
         pushToFirebase();
       }
     }
