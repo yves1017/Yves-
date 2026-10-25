@@ -9,7 +9,7 @@
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
   <!-- 網頁頁籤圖示 (Favicon) -->
-  <link rel="icon" type="image/png" href="./favicon.png?v=18">
+  <link rel="icon" type="image/png" href="./favicon.png?v=20">
 
   <!-- SEO & Open Graph (OG) 社群分享標籤 -->
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
@@ -51,7 +51,7 @@
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=18" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=20" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -133,19 +133,9 @@
       </div>
       <div class="space-y-3 text-xs text-gray-700">
         <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v4.1 (2026/10/25)</p>
-          <p class="text-gray-500">• 優化動態偵測過期資料的內存與性能表現，高流量載入更順暢</p>
-          <p class="text-gray-500">• 強化限時倒數標籤對比與視覺襯底，提升舊型手機螢幕清晰度</p>
-        </div>
-        <div class="border-l-2 border-blue-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v4.0 (2026/10/24)</p>
-          <p class="text-gray-500">• 啟用「商品與優惠券過期自動隱藏卡片」機制</p>
-          <p class="text-gray-500">• 實現「複製優惠碼時自動開分頁跳轉購買」</p>
-          <p class="text-gray-500">• 整合 GitHub Actions 與 Python 自動爬蟲準備架構</p>
-        </div>
-        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v1.0 (2026/09)</p>
-          <p class="text-gray-500">• 完成 GitHub Pages + Firebase 即時資料庫建置</p>
+          <p class="font-bold text-gray-900">v4.3 (2026/10/25)</p>
+          <p class="text-gray-500">• 整合倒數自動隱藏、複製券碼跳轉與帶文案分享</p>
+          <p class="text-gray-500">• 全面優化手機與高流量載入效能</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -242,8 +232,7 @@
 
     function renderStorefront() {
       const updateStr = storeData.lastUpdated ? storeData.lastUpdated : '尚無更新紀錄';
-      document.getElementById('last-updated-tag').innerText = `最後更新：${updateStr}`;
-      document.getElementById('last-updated-footer').innerText = `最後更新時間：${updateStr}`;
+      document.getElementById('last-updated-tag').innerText = `最後更新：${updateStr}`; document.getElementById('last-updated-footer').innerText = `最後更新時間：${updateStr}`;
 
       renderCategoryBar();
 
@@ -251,7 +240,6 @@
       const searchKeyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
       const promoContainer = document.getElementById('promo-codes-container');
       
-      // 自動隱藏過期優惠券
       const activeCodes = (storeData.codes || []).filter(c => c.active && !isExpired(c.expiry));
       
       if (promoContainer) {
@@ -280,9 +268,8 @@
           `).join('');
       }
 
-      // 自動隱藏過期商品
       const filtered = (storeData.products || []).filter(p => {
-        if (isExpired(p.expiry)) return false; // 遇過期商品直接過濾掉
+        if (isExpired(p.expiry)) return false;
         const matchPlatform = currentPlatform === 'ALL' || p.platform === currentPlatform;
         const matchCategory = currentCategory === 'ALL' || (p.category || '').trim() === currentCategory;
         const matchSearch = (p.name || '').toLowerCase().includes(searchKeyword) || (p.category || '').toLowerCase().includes(searchKeyword);
@@ -328,7 +315,7 @@
                     
                     <div class="mt-2.5 flex gap-1.5">
                       <a href="${p.link || '#'}" target="_blank" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
-                      <button onclick="shareProduct('${p.name}', '${p.link}')" class="px-2.5 py-2 bg-gray-100 active:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition-all" title="分享商品"><i class="fa-solid fa-share-nodes"></i></button>
+                      <button onclick="shareProduct('${p.name}', '${p.promoPrice}', '${p.link}')" class="px-2.5 py-2 bg-gray-100 active:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition-all" title="分享商品"><i class="fa-solid fa-share-nodes"></i></button>
                     </div>
                   </div>
                 </div>
@@ -357,36 +344,97 @@
         }
       });
 
-      // 只要檢測到有商品剛過期，立刻重新繪制畫面，徹底移除卡片
       if (hasExpired) {
         renderStorefront();
       }
     }
 
-    // 複製優惠碼並自動開啟分頁跳轉
     function copyAndRedirect(code, targetUrl) {
       if (code) {
         navigator.clipboard.writeText(code);
       }
       if (targetUrl && targetUrl !== 'undefined' && targetUrl !== '') {
-        alert(`✅ 優惠碼 [${code || '無'}] 已複製到剪貼簿！\n即將為你開啟購買連結。`);
-        window.open(targetUrl, '_blank');
-      } else {
-        alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
+        alert(`✅ 優惠碼 [${code \vert{}\vert{} '無'}] 已複製！\n即將為您前往專屬購買頁面。`); window.open(targetUrl, '_blank'); } else { alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
       }
     }
 
-    function shareProduct(title, url) {
-      if (navigator.share) {
-        navigator.share({ title: title, text: `【Yves 嚴選特惠】${title} - 市價最便宜購買連結：`, url: url }).catch(() => {});
+    function shareProduct(title, price, url) {
+      const shareText = `🔥【Yves 嚴選好康】${title}\n💰 限時破盤價：NT$ ${price}\n👉 最便宜購買連結：`; if (navigator.share) { navigator.share({ title: title, text: shareText, url: url }).catch(() => {}); } else { navigator.clipboard.writeText(`${shareText}\n${url}`); alert(`✅ 已複製商品推薦文案與購買連結！\n\n${shareText}\n${url}`); } }  function openChangelog() { document.getElementById('changelog-modal').classList.remove('hidden'); } function closeChangelog() { document.getElementById('changelog-modal').classList.add('hidden'); } </script> </body> </html> ```  ---  ### 2. 後台程式碼：全選複製並覆蓋 **`admin.html`**  ```html <!DOCTYPE html> <html lang="zh-TW"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> <title>Yves 嚴選特惠 - 後台管理控制台</title>  <link rel="icon" type="image/png" href="./favicon.png?v=20"> <script src="https://cdn.tailwindcss.com"></script> <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script> <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script> </head> <body class="bg-gray-100 text-gray-800 min-h-screen font-sans selection:bg-orange-100 pb-10">  <!-- PIN 碼解鎖視窗 --> <div id="pin-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"> <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4"> <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl"> <i class="fa-solid fa-lock"></i> </div> <h2 class="text-base sm:text-lg font-black text-gray-900">進入管理控制台</h2> <p class="text-xs text-gray-500">請輸入管理員 PIN 碼</p> <input type="password" id="pin-input" placeholder="請輸入密碼" class="w-full text-center tracking-widest text-lg font-bold py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"> <button onclick="verifyPIN()" class="w-full py-3 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-sm transition-all shadow-md">解鎖進入</button> </div> </div>  <div id="admin-content" class="hidden min-h-screen flex flex-col"> <!-- 頂部導覽列 --> <header class="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-40"> <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between"> <div class="flex items-center gap-2"> <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent"> <img src="./favicon.png?v=20" alt="Yves Logo" class="w-full h-full object-cover"> </div> <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1> </div> <div class="flex items-center gap-2"> <button onclick="openChangelog()" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-xs font-bold transition-all border border-gray-700 flex items-center gap-1"> <i class="fa-solid fa-clock-rotate-left"></i> 日誌 </button> <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-orange-600 active:bg-orange-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow"> <i class="fa-solid fa-eye"></i> 預覽前台 </a> </div> </div> </header>  <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4"> <div class="flex border-b border-gray-200 bg-white rounded-t-2xl px-2 sm:px-4 pt-2 gap-1 sm:gap-2"> <button onclick="switchTab('products')" id="btn-tab-products" class="flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all"> <i class="fa-solid fa-box-open"></i> 商品管理 </button> <button onclick="switchTab('codes')" id="btn-tab-codes" class="flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all"> <i class="fa-solid fa-ticket"></i> 優惠券管理 </button> </div>  <!-- 商品管理區 --> <section id="panel-products" class="space-y-3"> <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 gap-2.5"> <div class="relative w-full sm:w-64"> <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i> <input type="text" id="admin-search-input" oninput="renderAdminUI()" placeholder="搜尋後台商品..." class="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500"> </div>  <div class="flex flex-wrap gap-1.5 w-full sm:w-auto"> <button onclick="exportJSON()" class="flex-1 sm:flex-none px-2.5 py-2 bg-emerald-100 active:bg-emerald-200 text-emerald-700 font-bold text-xs rounded-xl"><i class="fa-solid fa-download"></i> 備份</button> <button onclick="document.getElementById('import-file').click()" class="flex-1 sm:flex-none px-2.5 py-2 bg-purple-100 active:bg-purple-200 text-purple-700 font-bold text-xs rounded-xl"><i class="fa-solid fa-upload"></i> 匯入</button> <input type="file" id="import-file" class="hidden" accept=".json" onchange="importJSON(event)"> <button onclick="clearAllProducts()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button> <button onclick="openProductModal()" class="flex-grow sm:flex-none px-3 py-2 bg-orange-500 text-white font-bold text-xs rounded-xl shadow">+ 新增商品</button> </div> </div>  <div id="products-container" class="space-y-3"></div> </section>  <!-- 優惠券管理區 --> <section id="panel-codes" class="hidden space-y-3"> <div class="flex justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100"> <h2 class="text-sm sm:text-base font-bold text-gray-800">全站優惠券列表</h2> <div class="flex gap-1.5"> <button onclick="clearAllCodes()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button> <button onclick="openCodeModal()" class="px-3 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow">+ 新增優惠券</button> </div> </div>  <div id="codes-container" class="space-y-3"></div> </section> </main> </div>  <!-- 商品彈窗 --> <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3"> <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto"> <h3 id="pm-title" class="text-base font-bold text-gray-900">新增商品</h3> <input type="hidden" id="pm-id"> <div class="space-y-2.5 text-xs"> <input type="text" id="pm-name" placeholder="商品名稱" class="w-full p-2.5 border border-gray-300 rounded-xl"> <div class="grid grid-cols-2 gap-2"> <select id="pm-platform" class="p-2.5 border border-gray-300 rounded-xl"> <option value="SHOPEE">蝦皮 Shopee</option> <option value="COUPANG">酷澎 Coupang</option> </select> <input type="text" id="pm-category" placeholder="分類 (美食/3C)" class="p-2.5 border border-gray-300 rounded-xl"> </div> <div class="grid grid-cols-2 gap-2"> <select id="pm-badge" class="p-2.5 border border-gray-300 rounded-xl font-bold"> <option value="NONE">熱門標籤：預設折扣</option> <option value="HOT">🔥 熱銷爆款</option> <option value="FLASH">⚡ 限時直降</option> <option value="NEW">✨ 新上架</option> </select> <input type="datetime-local" id="pm-expiry" class="p-2.5 border border-gray-300 rounded-xl" title="限時倒數截止時間"> </div> <div class="grid grid-cols-2 gap-2"> <input type="number" id="pm-orig" placeholder="原價" class="p-2.5 border border-gray-300 rounded-xl"> <input type="number" id="pm-promo" placeholder="特惠價" class="p-2.5 border border-gray-300 rounded-xl"> </div> <input type="text" id="pm-image" placeholder="圖片網址 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl"> <input type="text" id="pm-link" placeholder="分潤連結 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl"> <input type="text" id="pm-code" placeholder="特定優惠碼 (選填)" class="w-full p-2.5 border border-gray-300 rounded-xl"> </div> <div class="flex justify-end gap-2 pt-2"> <button onclick="closeProductModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button> <button onclick="saveProduct()" class="px-4 py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs">儲存商品</button> </div> </div> </div>  <!-- 社群文案生成彈窗 --> <div id="copy-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3"> <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3"> <div class="flex justify-between items-center"> <h3 class="text-base font-bold text-gray-900"><i class="fa-brands fa-threads text-orange-500"></i> Threads / IG 宣傳文案</h3> <button onclick="closeCopyModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button> </div> <textarea id="copy-text" rows="8" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-mono bg-gray-50 focus:bg-white focus:outline-none"></textarea> <button onclick="copyGeneratedText()" class="w-full py-3 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-xs shadow">複製整段文案</button> </div> </div>  <!-- 優惠券彈窗 --> <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3"> <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto"> <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3> <input type="hidden" id="cm-id"> <div class="space-y-2.5 text-xs"> <input type="text" id="cm-code" placeholder="優惠碼" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono uppercase"> <select id="cm-platform" class="w-full p-2.5 border border-gray-300 rounded-xl"> <option value="SHOPEE">蝦皮 Shopee</option> <option value="COUPANG">酷澎 Coupang</option> </select> <input type="text" id="cm-desc" placeholder="說明 (如: 滿 $499 折 $50)" class="w-full p-2.5 border border-gray-300 rounded-xl"> <input type="text" id="cm-link" placeholder="專屬領券連結 (URL，選填)" class="w-full p-2.5 border border-gray-300 rounded-xl"> <input type="datetime-local" id="cm-expiry" class="w-full p-2.5 border border-gray-300 rounded-xl" title="優惠券倒數截止時間 (選填)"> </div> <div class="flex justify-end gap-2 pt-2"> <button onclick="closeCodeModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button> <button onclick="saveCode()" class="px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">儲存優惠券</button> </div> </div> </div>  <!-- 更新日誌彈窗 --> <div id="changelog-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3"> <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto"> <div class="flex justify-between items-center border-b pb-2"> <h3 class="text-base font-bold text-gray-900"><i class="fa-solid fa-list-check text-orange-500"></i> Yves 嚴選特惠 - 更新日誌</h3> <button onclick="closeChangelog()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button> </div> <div class="space-y-3 text-xs text-gray-700"> <div class="border-l-2 border-orange-500 pl-3 space-y-1"> <p class="font-bold text-gray-900">v4.3 (2026/10/25)</p> <p class="text-gray-500">• 整合倒數自動隱藏、複製券碼跳轉與帶文案分享</p> <p class="text-gray-500">• 全面優化手機與高流量載入效能</p> </div> </div> <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button> </div> </div>  <script> const firebaseConfig = { apiKey: "AIzaSyBcI0OjXhHwOMsr_HhubzfLlVf_9wVcERI", authDomain: "shopee-da43f.firebaseapp.com", databaseURL: "https://shopee-da43f-default-rtdb.firebaseio.com", projectId: "shopee-da43f", storageBucket: "shopee-da43f.firebasestorage.app", messagingSenderId: "669756265345", appId: "1:669756265345:web:b55f67923b1b81687f0e80", measurementId: "G-Z8SZ67GGTC" };  firebase.initializeApp(firebaseConfig); const db = firebase.database();  let productsList = []; let codesList = [];  function verifyPIN() { const rawInput = document.getElementById('pin-input').value; if (rawInput.replace(/\s+/g, '') === '520490') { document.getElementById('pin-modal').classList.add('hidden'); document.getElementById('admin-content').classList.remove('hidden'); initRealtimeSync(); } else { alert('❌ 密碼錯誤！'); } }  function initRealtimeSync() { db.ref('yves_shop_data').on('value', (snapshot) => { const val = snapshot.val(); if (val) { productsList = val.products \vert{}\vert{} []; codesList = val.codes \vert{}\vert{} []; } else { productsList = []; codesList = []; } renderAdminUI(); }); }  function getNowFormatted() { const now = new Date(); return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function pushToFirebase() {
+      db.ref('yves_shop_data').set({
+        products: productsList,
+        codes: codesList,
+        lastUpdated: getNowFormatted()
+      });
+    }
+
+    function switchTab(tab) {
+      document.getElementById('panel-products').classList.toggle('hidden', tab !== 'products');
+      document.getElementById('panel-codes').classList.toggle('hidden', tab !== 'codes');
+      const btnP = document.getElementById('btn-tab-products');
+      const btnC = document.getElementById('btn-tab-codes');
+      if (tab === 'products') {
+        btnP.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all";
+        btnC.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all";
       } else {
-        navigator.clipboard.writeText(url);
-        alert(`✅ 已複製市價最便宜購買連結！\n\n${url}`);
+        btnC.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all";
+        btnP.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all";
       }
     }
 
-    function openChangelog() { document.getElementById('changelog-modal').classList.remove('hidden'); }
-    function closeChangelog() { document.getElementById('changelog-modal').classList.add('hidden'); }
-  </script>
-</body>
-</html>
+    function renderAdminUI() {
+      const searchKey = (document.getElementById('admin-search-input')?.value || '').toLowerCase().trim();
+      const pContainer = document.getElementById('products-container');
+
+      const filtered = productsList.filter(p => p.name.toLowerCase().includes(searchKey) || p.category.toLowerCase().includes(searchKey));
+
+      if (filtered.length === 0) {
+        pContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">沒有找到符合條件的商品</div>`;
+      } else {
+        pContainer.innerHTML = filtered.map((p) => {
+          const idx = productsList.findIndex(x => x.id === p.id);
+          const isShopee = p.platform === 'SHOPEE';
+          return `
+            <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <img src="${p.image}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0 bg-gray-100">
+                <div class="flex-grow min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${isShopee ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${isShopee ? '蝦皮' : '酷澎'}</span>
+                    <span class="text-[10px] text-gray-400">${p.category || '未分類'}</span>
+                  </div>
+                  <h3 class="font-bold text-xs sm:text-sm text-gray-800 truncate mt-0.5">${p.name}</h3>
+                  <p class="text-xs font-black text-red-600 mt-0.5">NT$ ${p.promoPrice} <span class="text-gray-400 font-normal line-through text-[10px]">NT$ ${p.originalPrice}</span></p>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-gray-100">
+                <div class="flex items-center bg-gray-50 rounded-lg p-0.5">
+                  <button onclick="pinProduct(${idx})" class="px-2 py-1.5 text-gray-400 hover:text-orange-500 text-xs" title="一鍵置頂"><i class="fa-solid fa-thumbtack"></i></button>
+                  <button onclick="moveProduct(${idx}, -1)" class="px-2 py-1.5 text-gray-400 hover:text-blue-500 text-xs" ${idx === 0 ? 'disabled class="opacity-30"' : ''}><i class="fa-solid fa-arrow-up"></i></button>
+                  <button onclick="moveProduct(${idx}, 1)" class="px-2 py-1.5 text-gray-400 hover:text-blue-500 text-xs" ${idx === productsList.length - 1 ? 'disabled class="opacity-30"' : ''}><i class="fa-solid fa-arrow-down"></i></button>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                  <button onclick="generateCopy(${idx})" class="px-2.5 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-xs active:bg-orange-200"><i class="fa-regular fa-copy"></i> 文案</button>
+                  <button onclick="editProduct(${p.id})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                  <button onclick="deleteProduct(${p.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const cContainer = document.getElementById('codes-container');
+      if (codesList.length === 0) {
+        cContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何優惠券</div>`;
+      } else {
+        cContainer.innerHTML = codesList.map(c => `
+          <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-black text-xs sm:text-sm text-gray-900">${c.code}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700'
