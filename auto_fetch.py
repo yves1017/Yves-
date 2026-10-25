@@ -10,13 +10,11 @@ def fetch_shopee_deals():
     
     print(f"🚀 [{readable_time}] 開始抓取蝦皮熱門商品真實資料...")
     
-    # 呼叫蝦皮熱銷榜單 API (以熱門推薦分類為例)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Referer": "https://shopee.tw/"
     }
     
-    # 蝦皮每日熱銷/推薦商品 API 端點
     shopee_api_url = "https://shopee.tw/api/v4/recommend/recommend_global_sorted?daily_discover_main_item_limit=10&limit=5&offset=0"
     
     fetched_products = []
@@ -27,12 +25,12 @@ def fetch_shopee_deals():
             data = res.json()
             items = data.get("data", {}).get("sections", [{}])[0].get("data", {}).get("item", [])
             
-            for index, item in enumerate(items[:5]):  # 取前 5 項熱門商品
+            for index, item in enumerate(items[:5]):
                 item_id = item.get("itemid")
                 shop_id = item.get("shopid")
                 name = item.get("name", "蝦皮熱銷精選商品")
                 
-                # 價格處理 (蝦皮 API 價格通常會多乘 100000)
+                # 價格處理
                 price_raw = item.get("price", 0)
                 price_before_raw = item.get("price_before_discount", price_raw)
                 
@@ -45,8 +43,8 @@ def fetch_shopee_deals():
                 image_hash = item.get("image", "")
                 image_url = f"https://down-tw.img.susercontent.com/file/{image_hash}" if image_hash else "https://via.placeholder.com/600"
                 
-                # 商品連結
-                product_link = f"https://shopee.tw/product/{shop_id}/{item_id}"
+                # 原始商品真實網址
+                raw_product_link = f"https://shopee.tw/product/{shop_id}/{item_id}"
                 
                 fetched_products.append({
                     "id": timestamp + index,
@@ -57,7 +55,7 @@ def fetch_shopee_deals():
                     "originalPrice": original_price,
                     "promoPrice": promo_price,
                     "image": image_url,
-                    "link": product_link,
+                    "link": raw_product_link,  # 預設帶入原始商品網址
                     "code": "",
                     "clicks": 0
                 })
@@ -66,7 +64,7 @@ def fetch_shopee_deals():
     except Exception as e:
         print(f"🚨 抓取過程發生異常：{e}")
 
-    # 如果爬蟲被擋，提供備用真實商品示範格式
+    # 備用真實商品格式（同步預設原始網址）
     if not fetched_products:
         fetched_products = [
             {
@@ -78,7 +76,7 @@ def fetch_shopee_deals():
                 "originalPrice": 599,
                 "promoPrice": 299,
                 "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&q=80",
-                "link": "https://shopee.tw",
+                "link": "https://shopee.tw/product/12345678/87654321",  # 原始商品網址範例
                 "code": "",
                 "clicks": 0
             }
@@ -105,7 +103,7 @@ def update_firebase(products):
 
         put_response = requests.put(url, json=current_products)
         if put_response.status_code == 200:
-            print(f"✅ 成功寫入 Firebase！新增了 {new_added} 項真實商品。")
+            print(f"✅ 成功寫入 Firebase！新增了 {new_added} 項商品（帶入原始網址）。")
         else:
             print(f"❌ 寫入失敗，狀態碼：{put_response.status_code}")
     except Exception as e:
