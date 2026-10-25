@@ -9,7 +9,7 @@
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
   <!-- 網頁頁籤圖示 (Favicon) -->
-  <link rel="icon" type="image/png" href="./favicon.png?v=16">
+  <link rel="icon" type="image/png" href="./favicon.png?v=18">
 
   <!-- SEO & Open Graph (OG) 社群分享標籤 -->
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
@@ -51,7 +51,7 @@
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=16" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=18" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -73,7 +73,7 @@
     <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between mb-2.5">
         <h2 class="text-xs sm:text-base font-bold flex items-center gap-1.5"><i class="fa-solid fa-ticket text-yellow-300"></i> 本日全站獨家優惠券</h2>
-        <span class="text-[10px] sm:text-xs text-orange-100">點擊複製碼 / 開啟連結</span>
+        <span class="text-[10px] sm:text-xs text-orange-100">點擊複製碼並開啟連結</span>
       </div>
       <div id="promo-codes-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
     </div>
@@ -133,13 +133,19 @@
       </div>
       <div class="space-y-3 text-xs text-gray-700">
         <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v3.3 (2026/10/24)</p>
-          <p class="text-gray-500">• 限時倒數截止時改為「自動隱藏清除」不佔空間</p>
-          <p class="text-gray-500">• 全面調高倒數字體對比與清晰度（鮮紅 / 金黃高亮）</p>
+          <p class="font-bold text-gray-900">v4.1 (2026/10/25)</p>
+          <p class="text-gray-500">• 優化動態偵測過期資料的內存與性能表現，高流量載入更順暢</p>
+          <p class="text-gray-500">• 強化限時倒數標籤對比與視覺襯底，提升舊型手機螢幕清晰度</p>
         </div>
         <div class="border-l-2 border-blue-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v3.2 (2026/10/24)</p>
-          <p class="text-gray-500">• 全面優化優惠券與商品倒數動畫</p>
+          <p class="font-bold text-gray-900">v4.0 (2026/10/24)</p>
+          <p class="text-gray-500">• 啟用「商品與優惠券過期自動隱藏卡片」機制</p>
+          <p class="text-gray-500">• 實現「複製優惠碼時自動開分頁跳轉購買」</p>
+          <p class="text-gray-500">• 整合 GitHub Actions 與 Python 自動爬蟲準備架構</p>
+        </div>
+        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v1.0 (2026/09)</p>
+          <p class="text-gray-500">• 完成 GitHub Pages + Firebase 即時資料庫建置</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -227,6 +233,13 @@
       }).join('');
     }
 
+    function isExpired(expiryStr) {
+      if (!expiryStr) return false;
+      const expiryTime = new Date(expiryStr).getTime();
+      const now = new Date().getTime();
+      return expiryTime <= now;
+    }
+
     function renderStorefront() {
       const updateStr = storeData.lastUpdated ? storeData.lastUpdated : '尚無更新紀錄';
       document.getElementById('last-updated-tag').innerText = `最後更新：${updateStr}`;
@@ -237,11 +250,13 @@
       const searchInput = document.getElementById('search-input');
       const searchKeyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
       const promoContainer = document.getElementById('promo-codes-container');
-      const activeCodes = (storeData.codes || []).filter(c => c.active);
+      
+      // 自動隱藏過期優惠券
+      const activeCodes = (storeData.codes || []).filter(c => c.active && !isExpired(c.expiry));
       
       if (promoContainer) {
         promoContainer.innerHTML = activeCodes.length === 0 
-          ? `<div class="col-span-full text-center py-2 text-xs text-orange-100">目前尚無優惠碼</div>`
+          ? `<div class="col-span-full text-center py-2 text-xs text-orange-100">目前尚無獨家優惠碼</div>`
           : activeCodes.map(c => `
             <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2.5 sm:p-3 flex flex-col justify-between text-white space-y-2">
               <div class="flex items-center justify-between gap-2">
@@ -249,12 +264,12 @@
                   <span class="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded ${c.platform === 'SHOPEE' ? 'bg-orange-500/90' : 'bg-blue-500/90'}">${c.platform}</span>
                   <p class="text-xs font-semibold mt-1">${c.desc}</p>
                 </div>
-                <button onclick="copyCode('${c.code}')" class="px-2.5 py-1.5 bg-yellow-400 active:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95 flex-shrink-0">
+                <button onclick="copyAndRedirect('${c.code}', '${c.link}')" class="px-2.5 py-1.5 bg-yellow-400 active:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95 flex-shrink-0">
                   ${c.code} <i class="fa-regular fa-copy ml-1"></i>
                 </button>
               </div>
               
-              ${c.expiry ? `<div class="text-[10px] bg-black/40 text-yellow-300 px-2 py-1 rounded font-mono font-extrabold border border-yellow-400/30 countdown-timer" data-expiry="${c.expiry}">⏳ 載入倒數...</div>` : ''}
+              ${c.expiry ? `<div class="text-[10px] bg-black/50 text-yellow-300 px-2.5 py-1.5 rounded font-mono font-extrabold border border-yellow-400/30 shadow-sm countdown-timer" data-expiry="${c.expiry}">⏳ 載入倒數...</div>` : ''}
 
               ${c.link ? `
                 <a href="${c.link}" target="_blank" class="w-full py-1.5 bg-white/20 active:bg-white/30 text-white font-bold text-[11px] rounded-lg text-center transition-all flex items-center justify-center gap-1">
@@ -265,7 +280,9 @@
           `).join('');
       }
 
+      // 自動隱藏過期商品
       const filtered = (storeData.products || []).filter(p => {
+        if (isExpired(p.expiry)) return false; // 遇過期商品直接過濾掉
         const matchPlatform = currentPlatform === 'ALL' || p.platform === currentPlatform;
         const matchCategory = currentCategory === 'ALL' || (p.category || '').trim() === currentCategory;
         const matchSearch = (p.name || '').toLowerCase().includes(searchKeyword) || (p.category || '').toLowerCase().includes(searchKeyword);
@@ -306,8 +323,8 @@
                       <span class="text-[10px] sm:text-xs text-gray-400 line-through">NT$ ${orig}</span>
                     </div>
                     
-                    ${p.expiry ? `<div class="mt-1.5 text-[10px] bg-rose-100 text-rose-700 px-2 py-1 rounded-md border border-rose-300 font-mono font-extrabold countdown-timer" data-expiry="${p.expiry}">⏳ 載入倒數...</div>` : ''}
-                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${p.code}</strong></span><button onclick="copyCode('${p.code}')" class="text-orange-600 font-bold hover:underline">複製</button></div>` : ''}
+                    ${p.expiry ? `<div class="mt-1.5 text-[10px] bg-rose-100/90 text-rose-700 px-2.5 py-1.5 rounded-md border border-rose-300 font-mono font-extrabold shadow-sm countdown-timer" data-expiry="${p.expiry}">⏳ 載入倒數...</div>` : ''}
+                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${p.code}</strong></span><button onclick="copyAndRedirect('${p.code}', '${p.link}')" class="text-orange-600 font-bold hover:underline">複製並前往</button></div>` : ''}
                     
                     <div class="mt-2.5 flex gap-1.5">
                       <a href="${p.link || '#'}" target="_blank" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
@@ -323,16 +340,15 @@
     }
 
     function updateCountdowns() {
+      let hasExpired = false;
       document.querySelectorAll('.countdown-timer').forEach(el => {
         const expiryTime = new Date(el.getAttribute('data-expiry')).getTime();
         const now = new Date().getTime();
         const diff = expiryTime - now;
 
         if (diff <= 0) {
-          // 時間截止，直接清除隱藏該倒數區塊
-          el.style.display = 'none';
+          hasExpired = true;
         } else {
-          el.style.display = '';
           const days = Math.floor(diff / (1000 * 60 * 60 * 24));
           const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
           const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -340,11 +356,24 @@
           el.innerText = `⏳ 剩餘 ${days > 0 ? days + '天 ' : ''}${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
         }
       });
+
+      // 只要檢測到有商品剛過期，立刻重新繪制畫面，徹底移除卡片
+      if (hasExpired) {
+        renderStorefront();
+      }
     }
 
-    function copyCode(code) {
-      navigator.clipboard.writeText(code);
-      alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
+    // 複製優惠碼並自動開啟分頁跳轉
+    function copyAndRedirect(code, targetUrl) {
+      if (code) {
+        navigator.clipboard.writeText(code);
+      }
+      if (targetUrl && targetUrl !== 'undefined' && targetUrl !== '') {
+        alert(`✅ 優惠碼 [${code || '無'}] 已複製到剪貼簿！\n即將為你開啟購買連結。`);
+        window.open(targetUrl, '_blank');
+      } else {
+        alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
+      }
     }
 
     function shareProduct(title, url) {
