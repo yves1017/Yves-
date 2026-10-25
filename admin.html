@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=20">
+  <link rel="icon" type="image/png" href="./favicon.png?v=51">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -33,7 +33,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=20" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=51" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
@@ -174,9 +174,9 @@
       </div>
       <div class="space-y-3 text-xs text-gray-700">
         <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v4.3 (2026/10/25)</p>
-          <p class="text-gray-500">• 整合倒數自動隱藏、複製券碼跳轉與帶文案分享</p>
-          <p class="text-gray-500">• 全面優化手機與高流量載入效能</p>
+          <p class="font-bold text-gray-900">v5.0 旗艦版 (2026/10/25)</p>
+          <p class="text-gray-500">• 後台新增「點擊熱度 🔥 數據統計」顯示</p>
+          <p class="text-gray-500">• 備份 JSON 格式擴充與防誤觸表單強化</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -273,6 +273,7 @@
                   <div class="flex items-center gap-1.5">
                     <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${isShopee ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${isShopee ? '蝦皮' : '酷澎'}</span>
                     <span class="text-[10px] text-gray-400">${p.category || '未分類'}</span>
+                    <span class="text-[10px] text-orange-600 font-black bg-orange-50 px-1 py-0.5 rounded"><i class="fa-solid fa-fire text-[9px]"></i> ${p.clicks || 0} 次點擊</span>
                   </div>
                   <h3 class="font-bold text-xs sm:text-sm text-gray-800 truncate mt-0.5">${p.name}</h3>
                   <p class="text-xs font-black text-red-600 mt-0.5">NT$ ${p.promoPrice} <span class="text-gray-400 font-normal line-through text-[10px]">NT$ ${p.originalPrice}</span></p>
@@ -438,7 +439,8 @@
         promoPrice: Number(document.getElementById('pm-promo').value) || 0,
         image: document.getElementById('pm-image').value || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80',
         link: document.getElementById('pm-link').value || 'https://shopee.tw',
-        code: document.getElementById('pm-code').value
+        code: document.getElementById('pm-code').value,
+        clicks: editId ? (productsList.find(x => x.id === Number(editId))?.clicks || 0) : 0
       };
 
       if (editId) {
