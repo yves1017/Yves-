@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
-  <link rel="icon" type="image/png" href="./favicon.png?v=14">
+  <link rel="icon" type="image/png" href="./favicon.png?v=18">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -33,7 +33,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=14" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=18" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
@@ -95,7 +95,7 @@
 
   <!-- 商品彈窗 -->
   <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
       <h3 id="pm-title" class="text-base font-bold text-gray-900">新增商品</h3>
       <input type="hidden" id="pm-id">
       <div class="space-y-2.5 text-xs">
@@ -143,9 +143,9 @@
     </div>
   </div>
 
-  <!-- 優惠券彈窗 (新增/編輯) -->
+  <!-- 優惠券彈窗 -->
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
       <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
       <input type="hidden" id="cm-id">
       <div class="space-y-2.5 text-xs">
@@ -174,9 +174,9 @@
       </div>
       <div class="space-y-3 text-xs text-gray-700">
         <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v3.1 (2026/10/24)</p>
-          <p class="text-gray-500">• 全站優惠券新增「限時倒數計時」功能</p>
-          <p class="text-gray-500">• 後台優惠券新增到期時間設定欄位</p>
+          <p class="font-bold text-gray-900">v4.1 (2026/10/25)</p>
+          <p class="text-gray-500">• 優化動態偵測過期資料的內存與性能表現，高流量載入更順暢</p>
+          <p class="text-gray-500">• 強化限時倒數標籤對比與視覺襯底，提升舊型手機螢幕清晰度</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
