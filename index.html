@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
   <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
 
-  <link rel="icon" type="image/png" href="./favicon.png?v=60">
+  <link rel="icon" type="image/png" href="./favicon.png?v=70">
 
   <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
   <meta name="keywords" content="Yves嚴選特惠, 蝦皮優惠碼, 酷澎折扣碼, Shopee特價, Coupang好康">
@@ -46,7 +46,7 @@
       <div class="flex items-center justify-between h-14 sm:h-16">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=60" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=70" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <div>
             <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
@@ -55,7 +55,7 @@
         </div>
         <div class="flex flex-col items-end">
           <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> 雲端防護中
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> App 深度直連
           </span>
           <span id="last-updated-tag" class="text-[9px] sm:text-[10px] text-gray-400 font-mono mt-0.5">即時載入中...</span>
         </div>
@@ -116,7 +116,7 @@
     <p>© 2026 Yves 嚴選特惠 | 導購連結與優惠即時更新</p>
     <p id="last-updated-footer" class="text-gray-500 text-[10px] font-mono">最後更新時間：載入中...</p>
     <button onclick="openChangelog()" class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-[10px] font-bold transition-all border border-gray-700">
-      <i class="fa-solid fa-shield-halved text-emerald-400"></i> 系統更新日誌 (v6.0 旗艦版)
+      <i class="fa-solid fa-mobile-screen-button text-emerald-400"></i> App Deep Link 直連升級 (v7.0)
     </button>
   </footer>
 
@@ -127,11 +127,11 @@
         <button onclick="closeChangelog()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div class="space-y-3 text-xs text-gray-700">
-        <div class="border-l-2 border-orange-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v6.0 旗艦自動化版 (2026/10/25)</p>
-          <p class="text-gray-500">• 前台啟用「🏆 點擊熱度 TOP 3 冠軍勳章」機制</p>
-          <p class="text-gray-500">• 後台整合 Discord / Telegram Webhook 自動推播</p>
-          <p class="text-gray-500">• 支援 GitHub Actions 每日過期商品自動清理工作流</p>
+        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
+          <p class="font-bold text-gray-900">v7.0 App 直連版 (2026/10/25)</p>
+          <p class="text-gray-500">• 手機瀏覽時點擊連結自動優先拉起「蝦皮 App / 酷澎 App」</p>
+          <p class="text-gray-500">• 解決瀏覽器未登入導致流失訂單的問題</p>
+          <p class="text-gray-500">• 前台全面整合熱銷冠亞季軍勳章與一鍵複製優惠券</p>
         </div>
       </div>
       <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
@@ -248,6 +248,34 @@
       }
     }
 
+    // 關鍵升級：手機 Deep Link 跳轉處理
+    function openAppOrUrl(url, platform) {
+      if (!url || url === '#' || url === 'undefined') return;
+
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      
+      if (isMobile) {
+        let appUrl = url;
+        if (platform === 'SHOPEE' && url.includes('shopee.tw')) {
+          appUrl = url.replace('https://shopee.tw/', 'shopee://');
+        } else if (platform === 'COUPANG' && url.includes('coupang.com')) {
+          appUrl = url.replace('https://', 'coupang://');
+        }
+
+        const now = Date.now();
+        window.location.href = appUrl;
+        
+        // 若沒有安裝 App 則在 1.5 秒後備用切回網頁版
+        setTimeout(() => {
+          if (Date.now() - now < 2000) {
+            window.open(url, '_blank', 'noopener,noreferrer');
+          }
+        }, 1500);
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    }
+
     function renderStorefront() {
       const updateStr = storeData.lastUpdated ? sanitize(storeData.lastUpdated) : '尚無更新紀錄';
       document.getElementById('last-updated-tag').innerText = `最後更新：${updateStr}`;
@@ -271,7 +299,7 @@
                   <span class="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded ${c.platform === 'SHOPEE' ? 'bg-orange-500/90' : 'bg-blue-500/90'}">${sanitize(c.platform)}</span>
                   <p class="text-xs font-semibold mt-1">${sanitize(c.desc)}</p>
                 </div>
-                <button onclick="copyAndRedirect('${sanitize(c.code)}', '${sanitize(c.link)}')" class="px-2.5 py-1.5 bg-yellow-400 active:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95 flex-shrink-0">
+                <button onclick="copyAndRedirect('${sanitize(c.code)}', '${sanitize(c.link)}', null, '${c.platform}')" class="px-2.5 py-1.5 bg-yellow-400 active:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95 flex-shrink-0">
                   ${sanitize(c.code)} <i class="fa-regular fa-copy ml-1"></i>
                 </button>
               </div>
@@ -279,15 +307,14 @@
               ${c.expiry ? `<div class="text-[10px] bg-black/50 text-yellow-300 px-2.5 py-1.5 rounded font-mono font-extrabold border border-yellow-400/30 shadow-sm countdown-timer" data-expiry="${sanitize(c.expiry)}">⏳ 載入倒數...</div>` : ''}
 
               ${c.link ? `
-                <a href="${sanitize(c.link)}" target="_blank" rel="noopener noreferrer" class="w-full py-1.5 bg-white/20 active:bg-white/30 text-white font-bold text-[11px] rounded-lg text-center transition-all flex items-center justify-center gap-1">
+                <button onclick="openAppOrUrl('${sanitize(c.link)}', '${c.platform}')" class="w-full py-1.5 bg-white/20 active:bg-white/30 text-white font-bold text-[11px] rounded-lg text-center transition-all flex items-center justify-center gap-1">
                   <i class="fa-solid fa-link text-[10px]"></i> 前往領券頁面
-                </a>
+                </button>
               ` : ''}
             </div>
           `).join('');
       }
 
-      // 排序點擊數以計算排名榜
       const sortedByClicks = [...(storeData.products || [])].sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
       const top1Id = sortedByClicks[0]?.clicks > 0 ? sortedByClicks[0]?.id : null;
       const top2Id = sortedByClicks[1]?.clicks > 0 ? sortedByClicks[1]?.id : null;
@@ -343,10 +370,10 @@
                     </div>
                     
                     ${p.expiry ? `<div class="mt-1.5 text-[10px] bg-rose-100/90 text-rose-700 px-2.5 py-1.5 rounded-md border border-rose-300 font-mono font-extrabold shadow-sm countdown-timer" data-expiry="${sanitize(p.expiry)}">⏳ 載入倒數...</div>` : ''}
-                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${sanitize(p.code)}</strong></span><button onclick="copyAndRedirect('${sanitize(p.code)}', '${sanitize(p.link)}', ${p.id})" class="text-orange-600 font-bold hover:underline">複製並前往</button></div>` : ''}
+                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${sanitize(p.code)}</strong></span><button onclick="copyAndRedirect('${sanitize(p.code)}', '${sanitize(p.link)}', ${p.id}, '${p.platform}')" class="text-orange-600 font-bold hover:underline">複製並前往</button></div>` : ''}
                     
                     <div class="mt-2.5 flex gap-1.5">
-                      <a href="${sanitize(p.link || '#')}" onclick="trackClick(${p.id})" target="_blank" rel="noopener noreferrer" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></a>
+                      <button onclick="handlePurchaseClick(${p.id}, '${sanitize(p.link)}', '${p.platform}')" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></button>
                       <button onclick="shareProduct('${sanitize(p.name)}', '${p.promoPrice}', '${sanitize(p.link)}')" class="px-2.5 py-2 bg-gray-100 active:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition-all" title="分享商品"><i class="fa-solid fa-share-nodes"></i></button>
                     </div>
                   </div>
@@ -356,6 +383,11 @@
           }).join('');
       }
       updateCountdowns();
+    }
+
+    function handlePurchaseClick(id, link, platform) {
+      trackClick(id);
+      openAppOrUrl(link, platform);
     }
 
     function updateCountdowns() {
@@ -381,14 +413,14 @@
       }
     }
 
-    function copyAndRedirect(code, targetUrl, productId) {
+    function copyAndRedirect(code, targetUrl, productId, platform) {
       if (productId) trackClick(productId);
       if (code) {
         navigator.clipboard.writeText(code);
       }
       if (targetUrl && targetUrl !== 'undefined' && targetUrl !== '') {
         alert(`✅ 優惠碼 [${code || '無'}] 已複製！\n即將為您前往專屬購買頁面。`);
-        window.open(targetUrl, '_blank', 'noopener,noreferrer');
+        openAppOrUrl(targetUrl, platform);
       } else {
         alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
       }
