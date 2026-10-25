@@ -6,7 +6,7 @@
   <title>Yves 嚴選特惠 - 高強度安全後台</title>
   
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
-  <link rel="icon" type="image/png" href="./favicon.png?v=64">
+  <link rel="icon" type="image/png" href="./favicon.png?v=71">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -53,7 +53,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=64" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=71" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理 (安全連線)</h1>
         </div>
@@ -160,6 +160,22 @@
     </div>
   </div>
 
+  <!-- 新增：Threads 限動圖片生成與預覽彈窗 -->
+  <div id="canvas-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-4 shadow-2xl space-y-3 flex flex-col items-center">
+      <div class="flex justify-between items-center w-full">
+        <h3 class="text-sm font-bold text-gray-900"><i class="fa-solid fa-wand-magic-sparkles text-orange-500"></i> Threads 限動圖片生成</h3>
+        <button onclick="closeCanvasModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div class="w-full aspect-[9/16] bg-gray-100 rounded-xl overflow-hidden shadow-inner flex items-center justify-center relative">
+        <canvas id="story-canvas" width="1080" height="1920" class="w-full h-full object-contain"></canvas>
+      </div>
+      <button onclick="downloadStoryImage()" class="w-full py-2.5 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-xs shadow flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-download"></i> 下載高畫質限動圖片 (9:16)
+      </button>
+    </div>
+  </div>
+
   <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
       <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
@@ -257,13 +273,8 @@
       }
     }
 
-    function showForgotPasswordModal() {
-      document.getElementById('forgot-modal').classList.remove('hidden');
-    }
-
-    function closeForgotPasswordModal() {
-      document.getElementById('forgot-modal').classList.add('hidden');
-    }
+    function showForgotPasswordModal() { document.getElementById('forgot-modal').classList.remove('hidden'); }
+    function closeForgotPasswordModal() { document.getElementById('forgot-modal').classList.add('hidden'); }
 
     const firebaseConfig = {
       apiKey: "AIzaSyBcI0OjXhHwOMsr_HhubzfLlVf_9wVcERI",
@@ -281,6 +292,7 @@
 
     let productsList = [];
     let codesList = [];
+    let currentStoryProduct = null;
 
     function initRealtimeSync() {
       db.ref('yves_shop_data').on('value', (snapshot) => {
@@ -307,29 +319,6 @@
         codes: codesList,
         lastUpdated: getNowFormatted()
       });
-    }
-
-    function sendDiscordWebhook(webhookUrl, product) {
-      if (!webhookUrl) return;
-      const content = {
-        embeds: [{
-          title: `🔥【Yves 嚴選特惠】${product.name}`,
-          url: product.link,
-          color: product.platform === 'SHOPEE' ? 16737792 : 255,
-          fields: [
-            { name: "💰 特惠價", value: `**NT$ ${product.promoPrice}** (原價 $${product.originalPrice})`, inline: true },
-            { name: "🏷️ 平台", value: product.platform, inline: true },
-            { name: "🎟️ 優惠碼", value: product.code || "無", inline: true }
-          ],
-          image: { url: product.image },
-          footer: { text: "Yves 嚴選特惠 - 導購連結與優惠即時更新" }
-        }]
-      };
-      fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(content)
-      }).catch(err => console.error(err));
     }
 
     function switchTab(tab) {
@@ -372,7 +361,8 @@
                 </div>
                 
                 <div class="flex items-center gap-1.5">
-                  <button onclick="generateCopy(${idx})" class="px-2.5 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-xs active:bg-orange-200"><i class="fa-regular fa-copy"></i> 文案</button>
+                  <button onclick="generateStoryCanvas(${idx})" class="px-2 py-1.5 bg-purple-100 text-purple-700 rounded-lg font-bold text-xs active:bg-purple-200" title="生成 Threads 圖片"><i class="fa-solid fa-wand-magic-sparkles"></i> 圖片</button>
+                  <button onclick="generateCopy(${idx})" class="px-2 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-xs active:bg-orange-200"><i class="fa-regular fa-copy"></i> 文案</button>
                   <button onclick="editProduct(${p.id})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
                   <button onclick="deleteProduct(${p.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
                 </div>
@@ -381,44 +371,113 @@
           `;
         }).join('');
       }
-
-      const cContainer = document.getElementById('codes-container');
-      if (codesList.length === 0) {
-        cContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何優惠券</div>`;
-      } else {
-        cContainer.innerHTML = codesList.map(c => `
-          <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-black text-xs sm:text-sm text-gray-900">${c.code}</span>
-                <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${c.platform}</span>
-              </div>
-              <p class="text-xs text-gray-600 mt-1">${c.desc}</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="toggleCodeStatus(${c.id})" class="px-2.5 py-1 rounded-lg text-xs font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用中' : '已停用'}</button>
-              <button onclick="editCode(${c.id})" class="p-1.5 text-blue-500"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        `).join('');
-      }
     }
 
-    function pinProduct(index) {
-      if (index === 0) return;
-      const target = productsList.splice(index, 1)[0];
-      productsList.unshift(target);
-      pushToFirebase();
+    // HTML5 Canvas 自動繪製 Threads 9:16 精美圖片
+    function generateStoryCanvas(index) {
+      const p = productsList[index];
+      if (!p) return;
+      currentStoryProduct = p;
+
+      const canvas = document.getElementById('story-canvas');
+      const ctx = canvas.getContext('2d');
+
+      // 背景漸層
+      const grad = ctx.createLinearGradient(0, 0, 0, 1920);
+      grad.addColorStop(0, '#0f172a');
+      grad.addColorStop(0.5, '#1e293b');
+      grad.addColorStop(1, '#0f172a');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, 1080, 1920);
+
+      // 品牌 Header
+      ctx.fillStyle = '#f97316';
+      ctx.font = 'bold 54px sans-serif';
+      ctx.fillText('Yves 嚴選特惠', 100, 140);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '36px sans-serif';
+      ctx.fillText('蝦皮 Shopee × 酷澎 Coupang 限時爆款', 100, 200);
+
+      // 載入商品圖
+      const img = new Image();
+      img.crossOrigin = 'Anonymous';
+      img.src = p.image || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80';
+
+      img.onload = () => {
+        // 白底主圖片框
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(90, 260, 900, 900, 40);
+        ctx.fill();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(100, 270, 880, 880, 30);
+        ctx.clip();
+        ctx.drawImage(img, 100, 270, 880, 880);
+        ctx.restore();
+
+        // 標題卡片區
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        ctx.beginPath();
+        ctx.roundRect(90, 1200, 900, 520, 36);
+        ctx.fill();
+
+        // 商品名稱
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 52px sans-serif';
+        const title = p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name;
+        ctx.fillText(title, 140, 1290);
+
+        // 價格顯示
+        const orig = p.originalPrice || 0;
+        const promo = p.promoPrice || 0;
+        const save = orig > promo ? orig - promo : 0;
+
+        ctx.fillStyle = '#dc2626';
+        ctx.font = 'black 84px sans-serif';
+        ctx.fillText(`NT$ ${promo}`, 140, 1400);
+
+        if (orig > 0) {
+          ctx.fillStyle = '#64748b';
+          ctx.font = '42px sans-serif';
+          ctx.fillText(`原價 $${orig}`, 560, 1395);
+        }
+
+        if (save > 0) {
+          ctx.fillStyle = '#10b981';
+          ctx.font = 'bold 44px sans-serif';
+          ctx.fillText(`🔥 直降現省 $${save}`, 140, 1480);
+        }
+
+        if (p.code) {
+          ctx.fillStyle = '#ea580c';
+          ctx.font = 'bold 44px sans-serif';
+          ctx.fillText(`🎟️ 獨家券碼: ${p.code}`, 140, 1550);
+        }
+
+        // 頁尾輔助提示
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 44px sans-serif';
+        ctx.fillText('👉 限時特惠連結在上方 / 留言區！', 140, 1820);
+
+        document.getElementById('canvas-modal').classList.remove('hidden');
+      };
+
+      img.onerror = () => {
+        alert('❌ 商品圖片跨域或網址失效，無法合成圖片。');
+      };
     }
 
-    function moveProduct(index, direction) {
-      const newIndex = index + direction;
-      if (newIndex < 0 || newIndex >= productsList.length) return;
-      const temp = productsList[index];
-      productsList[index] = productsList[newIndex];
-      productsList[newIndex] = temp;
-      pushToFirebase();
+    function closeCanvasModal() { document.getElementById('canvas-modal').classList.add('hidden'); }
+
+    function downloadStoryImage() {
+      const canvas = document.getElementById('story-canvas');
+      const link = document.createElement('a');
+      link.download = `yves_story_${currentStoryProduct ? currentStoryProduct.id : Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
     }
 
     function generateCopy(index) {
@@ -440,193 +499,6 @@
       navigator.clipboard.writeText(document.getElementById('copy-text').value);
       alert('✅ 已複製 Threads / IG 宣傳文案！');
       closeCopyModal();
-    }
-
-    function exportJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ products: productsList, codes: codesList, lastUpdated: getNowFormatted() }, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `yves_shop_backup_${Date.now()}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          if (confirm('確定要將備份 JSON 覆蓋目前的雲端資料庫嗎？')) {
-            productsList = importedData.products || [];
-            codesList = importedData.codes || [];
-            pushToFirebase();
-            alert('✅ 匯入成功！');
-          }
-        } catch (err) { alert('❌ JSON 格式不正確！'); }
-      };
-      reader.readAsText(file);
-    }
-
-    function openProductModal() {
-      document.getElementById('pm-title').innerText = '新增商品';
-      document.getElementById('pm-id').value = '';
-      document.getElementById('pm-name').value = '';
-      document.getElementById('pm-platform').value = 'SHOPEE';
-      document.getElementById('pm-category').value = '';
-      document.getElementById('pm-badge').value = 'NONE';
-      document.getElementById('pm-expiry').value = '';
-      document.getElementById('pm-orig').value = '';
-      document.getElementById('pm-promo').value = '';
-      document.getElementById('pm-image').value = '';
-      document.getElementById('pm-link').value = '';
-      document.getElementById('pm-code').value = '';
-      document.getElementById('pm-webhook').value = '';
-      document.getElementById('product-modal').classList.remove('hidden');
-    }
-
-    function editProduct(id) {
-      const p = productsList.find(x => x.id === id);
-      if (!p) return;
-      document.getElementById('pm-title').innerText = '編輯商品';
-      document.getElementById('pm-id').value = p.id;
-      document.getElementById('pm-name').value = p.name;
-      document.getElementById('pm-platform').value = p.platform;
-      document.getElementById('pm-category').value = p.category;
-      document.getElementById('pm-badge').value = p.badge || 'NONE';
-      document.getElementById('pm-expiry').value = p.expiry || '';
-      document.getElementById('pm-orig').value = p.originalPrice;
-      document.getElementById('pm-promo').value = p.promoPrice;
-      document.getElementById('pm-image').value = p.image;
-      document.getElementById('pm-link').value = p.link;
-      document.getElementById('pm-code').value = p.code || '';
-      document.getElementById('product-modal').classList.remove('hidden');
-    }
-
-    function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
-    
-    function saveProduct() {
-      if (!confirm('確定儲存並更新至雲端？')) return;
-
-      const editId = document.getElementById('pm-id').value;
-      const productData = {
-        id: editId ? Number(editId) : Date.now(),
-        name: document.getElementById('pm-name').value || '未命名商品',
-        platform: document.getElementById('pm-platform').value,
-        category: document.getElementById('pm-category').value || '未分類',
-        badge: document.getElementById('pm-badge').value,
-        expiry: document.getElementById('pm-expiry').value,
-        originalPrice: Number(document.getElementById('pm-orig').value) || 0,
-        promoPrice: Number(document.getElementById('pm-promo').value) || 0,
-        image: document.getElementById('pm-image').value || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80',
-        link: document.getElementById('pm-link').value || 'https://shopee.tw',
-        code: document.getElementById('pm-code').value,
-        clicks: editId ? (productsList.find(x => x.id === Number(editId))?.clicks || 0) : 0
-      };
-
-      const webhookUrl = document.getElementById('pm-webhook').value.trim();
-      if (webhookUrl) {
-        sendDiscordWebhook(webhookUrl, productData);
-      }
-
-      if (editId) {
-        const idx = productsList.findIndex(x => x.id === Number(editId));
-        if (idx !== -1) productsList[idx] = productData;
-      } else {
-        productsList.unshift(productData);
-      }
-
-      pushToFirebase();
-      closeProductModal();
-    }
-
-    function deleteProduct(id) {
-      if (confirm('確定刪除商品？')) {
-        productsList = productsList.filter(p => p.id !== id);
-        pushToFirebase();
-      }
-    }
-
-    function clearAllProducts() {
-      if (confirm('⚠️ 確定清空所有商品？')) {
-        productsList = [];
-        pushToFirebase();
-      }
-    }
-
-    function openCodeModal() { 
-      document.getElementById('cm-title').innerText = '新增優惠券';
-      document.getElementById('cm-id').value = '';
-      document.getElementById('cm-code').value = '';
-      document.getElementById('cm-platform').value = 'SHOPEE';
-      document.getElementById('cm-desc').value = '';
-      document.getElementById('cm-link').value = '';
-      document.getElementById('cm-expiry').value = '';
-      document.getElementById('code-modal').classList.remove('hidden'); 
-    }
-
-    function editCode(id) {
-      const c = codesList.find(x => x.id === id);
-      if (!c) return;
-      document.getElementById('cm-title').innerText = '編輯優惠券';
-      document.getElementById('cm-id').value = c.id;
-      document.getElementById('cm-code').value = c.code;
-      document.getElementById('cm-platform').value = c.platform;
-      document.getElementById('cm-desc').value = c.desc;
-      document.getElementById('cm-link').value = c.link || '';
-      document.getElementById('cm-expiry').value = c.expiry || '';
-      document.getElementById('code-modal').classList.remove('hidden');
-    }
-
-    function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
-    
-    function saveCode() {
-      if (!confirm('確定儲存優惠券？')) return;
-
-      const editId = document.getElementById('cm-id').value;
-      const codeData = {
-        id: editId ? Number(editId) : Date.now(),
-        code: document.getElementById('cm-code').value.toUpperCase(),
-        platform: document.getElementById('cm-platform').value,
-        desc: document.getElementById('cm-desc').value || '全館優惠',
-        link: document.getElementById('cm-link').value || '',
-        expiry: document.getElementById('cm-expiry').value || '',
-        active: editId ? (codesList.find(x => x.id === Number(editId))?.active ?? true) : true
-      };
-
-      if (editId) {
-        const idx = codesList.findIndex(x => x.id === Number(editId));
-        if (idx !== -1) codesList[idx] = codeData;
-      } else {
-        codesList.unshift(codeData);
-      }
-
-      pushToFirebase();
-      closeCodeModal();
-    }
-
-    function toggleCodeStatus(id) {
-      const c = codesList.find(x => x.id === id);
-      if (c) {
-        c.active = !c.active;
-        pushToFirebase();
-      }
-    }
-
-    function deleteCode(id) {
-      if (confirm('確定刪除優惠券？')) {
-        codesList = codesList.filter(c => c.id !== id);
-        pushToFirebase();
-      }
-    }
-
-    function clearAllCodes() {
-      if (confirm('⚠️ 確定清空所有優惠券？')) {
-        codesList = [];
-        pushToFirebase();
-      }
     }
   </script>
 </body>
