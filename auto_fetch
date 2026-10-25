@@ -1,0 +1,50 @@
+import os
+import time
+import requests
+
+FIREBASE_DATABASE_URL = "https://shopee-da43f-default-rtdb.firebaseio.com"
+
+def fetch_shopee_deals():
+    print("🚀 開始抓取最新熱門特惠商品...")
+    
+    # 模擬自動抓取爆款商品資料
+    fetched_products = [
+        {
+            "id": int(time.time() * 1000),
+            "name": "【蝦皮直營】裕榮食品 蝦味先 原味/香辣 60g",
+            "platform": "SHOPEE",
+            "category": "零食點心",
+            "badge": "HOT",
+            "originalPrice": 25,
+            "promoPrice": 5,
+            "image": "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80",
+            "link": "https://shopee.tw",
+            "code": "YVES520",
+            "clicks": 0
+        }
+    ]
+    return fetched_products
+
+def update_firebase(products):
+    url = f"{FIREBASE_DATABASE_URL}/yves_shop_data/products.json"
+    response = requests.get(url)
+    current_products = response.json() or []
+
+    existing_ids = {p.get("id") for p in current_products if isinstance(p, dict)}
+    
+    new_added = 0
+    for p in products:
+        if p["id"] not in existing_ids:
+            current_products.insert(0, p)
+            new_added += 1
+
+    put_response = requests.put(url, json=current_products)
+    if put_response.status_code == 200:
+        print(f"✅ 成功寫入 Firebase！新增了 {new_added} 項商品。")
+    else:
+        print(f"❌ 寫入失敗，狀態碼：{put_response.status_code}")
+
+if __name__ == "__main__":
+    deals = fetch_shopee_deals()
+    if deals:
+        update_firebase(deals)
