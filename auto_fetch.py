@@ -1,0 +1,58 @@
+import os
+import time
+import requests
+
+FIREBASE_DATABASE_URL = "https://shopee-da43f-default-rtdb.firebaseio.com"
+
+def fetch_shopee_deals():
+    timestamp = int(time.time())
+    readable_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    
+    print(f"🚀 [{readable_time}] 開始抓取最新熱門爆款商品...")
+    
+    fetched_products = [
+        {
+            "id": timestamp,
+            "name": f"【自動抓取】熱門爆款商品測試 ({readable_time})",
+            "platform": "SHOPEE",
+            "category": "自動推播",
+            "badge": "HOT",
+            "originalPrice": 100,
+            "promoPrice": 50,
+            "image": "https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80",
+            "link": "https://shopee.tw",
+            "code": "",
+            "clicks": 0
+        }
+    ]
+    return fetched_products
+
+def update_firebase(products):
+    url = f"{FIREBASE_DATABASE_URL}/yves_shop_data/products.json"
+    
+    try:
+        response = requests.get(url)
+        current_products = response.json() or []
+        if not isinstance(current_products, list):
+            current_products = []
+
+        existing_ids = {p.get("id") for p in current_products if isinstance(p, dict)}
+        
+        new_added = 0
+        for p in products:
+            if p["id"] not in existing_ids:
+                current_products.insert(0, p)
+                new_added += 1
+
+        put_response = requests.put(url, json=current_products)
+        if put_response.status_code == 200:
+            print(f"✅ 成功寫入 Firebase！新增了 {new_added} 項商品。")
+        else:
+            print(f"❌ 寫入失敗，狀態碼：{put_response.status_code}，回應內容：{put_response.text}")
+    except Exception as e:
+        print(f"🚨 執行過程發生異常：{e}")
+
+if __name__ == "__main__":
+    deals = fetch_shopee_deals()
+    if deals:
+        update_firebase(deals)
