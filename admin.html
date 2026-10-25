@@ -6,7 +6,7 @@
   <title>Yves 嚴選特惠 - 安全後台控制台</title>
   
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
-  <link rel="icon" type="image/png" href="./favicon.png?v=52">
+  <link rel="icon" type="image/png" href="./favicon.png?v=60">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -15,7 +15,6 @@
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen font-sans selection:bg-orange-100 pb-10">
 
-  <!-- 安全 PIN 碼解鎖視窗 -->
   <div id="pin-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
       <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl">
@@ -33,7 +32,7 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=52" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=60" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
           <h1 class="text-sm sm:text-base font-bold">Yves 後台管理 (安全連線)</h1>
         </div>
@@ -120,10 +119,11 @@
         <input type="text" id="pm-image" placeholder="圖片網址 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl">
         <input type="text" id="pm-link" placeholder="分潤連結 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl">
         <input type="text" id="pm-code" placeholder="特定優惠碼 (選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="pm-webhook" placeholder="Discord Webhook URL (選填，自動推播至頻道)" class="w-full p-2.5 border border-gray-200 rounded-xl bg-gray-50 font-mono text-[10px]">
       </div>
       <div class="flex justify-end gap-2 pt-2">
         <button onclick="closeProductModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
-        <button onclick="saveProduct()" class="px-4 py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs">儲存商品</button>
+        <button onclick="saveProduct()" class="px-4 py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs">儲存並同步</button>
       </div>
     </div>
   </div>
@@ -139,36 +139,13 @@
     </div>
   </div>
 
-  <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
-      <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
-      <input type="hidden" id="cm-id">
-      <div class="space-y-2.5 text-xs">
-        <input type="text" id="cm-code" placeholder="優惠碼" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono uppercase">
-        <select id="cm-platform" class="w-full p-2.5 border border-gray-300 rounded-xl">
-          <option value="SHOPEE">蝦皮 Shopee</option>
-          <option value="COUPANG">酷澎 Coupang</option>
-        </select>
-        <input type="text" id="cm-desc" placeholder="說明 (如: 滿 $499 折 $50)" class="w-full p-2.5 border border-gray-300 rounded-xl">
-        <input type="text" id="cm-link" placeholder="專屬領券連結 (URL，選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
-        <input type="datetime-local" id="cm-expiry" class="w-full p-2.5 border border-gray-300 rounded-xl" title="優惠券倒數截止時間 (選填)">
-      </div>
-      <div class="flex justify-end gap-2 pt-2">
-        <button onclick="closeCodeModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
-        <button onclick="saveCode()" class="px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">儲存優惠券</button>
-      </div>
-    </div>
-  </div>
-
   <script>
-    // SHA-256 加密雜湊函式
     async function hashSHA256(str) {
       const buffer = new TextEncoder().encode(str);
       const digest = await crypto.subtle.digest('SHA-256', buffer);
       return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // 正確 PIN 碼的 SHA-256 哈希值 (原 520490 的加密比對值)
     const TARGET_HASH = "ca2911b6d0ef06ecb6ec1f73b754904ea8d67280feef9662b9a7f34f6bbd6a2f";
     let failedAttempts = 0;
 
@@ -241,18 +218,32 @@
       });
     }
 
+    function sendDiscordWebhook(webhookUrl, product) {
+      if (!webhookUrl) return;
+      const content = {
+        embeds: [{
+          title: `🔥【Yves 嚴選特惠】${product.name}`,
+          url: product.link,
+          color: product.platform === 'SHOPEE' ? 16737792 : 255,
+          fields: [
+            { name: "💰 特惠價", value: `**NT$ ${product.promoPrice}** (原價 $${product.originalPrice})`, inline: true },
+            { name: "🏷️ 平台", value: product.platform, inline: true },
+            { name: "🎟️ 優惠碼", value: product.code || "無", inline: true }
+          ],
+          image: { url: product.image },
+          footer: { text: "Yves 嚴選特惠 - 導購連結與優惠即時更新" }
+        }]
+      };
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      }).catch(err => console.error(err));
+    }
+
     function switchTab(tab) {
       document.getElementById('panel-products').classList.toggle('hidden', tab !== 'products');
       document.getElementById('panel-codes').classList.toggle('hidden', tab !== 'codes');
-      const btnP = document.getElementById('btn-tab-products');
-      const btnC = document.getElementById('btn-tab-codes');
-      if (tab === 'products') {
-        btnP.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all";
-        btnC.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all";
-      } else {
-        btnC.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all";
-        btnP.className = "flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all";
-      }
     }
 
     function renderAdminUI() {
@@ -275,6 +266,7 @@
                   <div class="flex items-center gap-1.5">
                     <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${isShopee ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${isShopee ? '蝦皮' : '酷澎'}</span>
                     <span class="text-[10px] text-gray-400">${p.category || '未分類'}</span>
+                    <span class="text-[10px] text-orange-600 font-black bg-orange-50 px-1 py-0.5 rounded"><i class="fa-solid fa-fire text-[9px]"></i> ${p.clicks || 0} 次點擊</span>
                   </div>
                   <h3 class="font-bold text-xs sm:text-sm text-gray-800 truncate mt-0.5">${p.name}</h3>
                   <p class="text-xs font-black text-red-600 mt-0.5">NT$ ${p.promoPrice} <span class="text-gray-400 font-normal line-through text-[10px]">NT$ ${p.originalPrice}</span></p>
@@ -297,28 +289,6 @@
             </div>
           `;
         }).join('');
-      }
-
-      const cContainer = document.getElementById('codes-container');
-      if (codesList.length === 0) {
-        cContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何優惠券</div>`;
-      } else {
-        cContainer.innerHTML = codesList.map(c => `
-          <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="font-mono font-black text-xs sm:text-sm text-gray-900">${c.code}</span>
-                <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${c.platform}</span>
-              </div>
-              <p class="text-xs text-gray-600 mt-1">${c.desc}</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button onclick="toggleCodeStatus(${c.id})" class="px-2.5 py-1 rounded-lg text-xs font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用中' : '已停用'}</button>
-              <button onclick="editCode(${c.id})" class="p-1.5 text-blue-500"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        `).join('');
       }
     }
 
@@ -353,40 +323,10 @@
     }
 
     function closeCopyModal() { document.getElementById('copy-modal').classList.add('hidden'); }
-    
     function copyGeneratedText() {
-      const text = document.getElementById('copy-text').value;
-      navigator.clipboard.writeText(text);
+      navigator.clipboard.writeText(document.getElementById('copy-text').value);
       alert('✅ 已複製 Threads / IG 宣傳文案！');
       closeCopyModal();
-    }
-
-    function exportJSON() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ products: productsList, codes: codesList, lastUpdated: getNowFormatted() }, null, 2));
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", dataStr);
-      downloadAnchor.setAttribute("download", `yves_shop_backup_${Date.now()}.json`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-    }
-
-    function importJSON(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          if (confirm('確定要將備份 JSON 覆蓋目前的雲端資料庫嗎？')) {
-            productsList = importedData.products || [];
-            codesList = importedData.codes || [];
-            pushToFirebase();
-            alert('✅ 匯入成功！');
-          }
-        } catch (err) { alert('❌ JSON 格式不正確！'); }
-      };
-      reader.readAsText(file);
     }
 
     function openProductModal() {
@@ -402,6 +342,7 @@
       document.getElementById('pm-image').value = '';
       document.getElementById('pm-link').value = '';
       document.getElementById('pm-code').value = '';
+      document.getElementById('pm-webhook').value = '';
       document.getElementById('product-modal').classList.remove('hidden');
     }
 
@@ -440,8 +381,14 @@
         promoPrice: Number(document.getElementById('pm-promo').value) || 0,
         image: document.getElementById('pm-image').value || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80',
         link: document.getElementById('pm-link').value || 'https://shopee.tw',
-        code: document.getElementById('pm-code').value
+        code: document.getElementById('pm-code').value,
+        clicks: editId ? (productsList.find(x => x.id === Number(editId))?.clicks || 0) : 0
       };
+
+      const webhookUrl = document.getElementById('pm-webhook').value.trim();
+      if (webhookUrl) {
+        sendDiscordWebhook(webhookUrl, productData);
+      }
 
       if (editId) {
         const idx = productsList.findIndex(x => x.id === Number(editId));
@@ -464,79 +411,6 @@
     function clearAllProducts() {
       if (confirm('⚠️ 確定清空所有商品？')) {
         productsList = [];
-        pushToFirebase();
-      }
-    }
-
-    function openCodeModal() { 
-      document.getElementById('cm-title').innerText = '新增優惠券';
-      document.getElementById('cm-id').value = '';
-      document.getElementById('cm-code').value = '';
-      document.getElementById('cm-platform').value = 'SHOPEE';
-      document.getElementById('cm-desc').value = '';
-      document.getElementById('cm-link').value = '';
-      document.getElementById('cm-expiry').value = '';
-      document.getElementById('code-modal').classList.remove('hidden'); 
-    }
-
-    function editCode(id) {
-      const c = codesList.find(x => x.id === id);
-      if (!c) return;
-      document.getElementById('cm-title').innerText = '編輯優惠券';
-      document.getElementById('cm-id').value = c.id;
-      document.getElementById('cm-code').value = c.code;
-      document.getElementById('cm-platform').value = c.platform;
-      document.getElementById('cm-desc').value = c.desc;
-      document.getElementById('cm-link').value = c.link || '';
-      document.getElementById('cm-expiry').value = c.expiry || '';
-      document.getElementById('code-modal').classList.remove('hidden');
-    }
-
-    function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
-    
-    function saveCode() {
-      if (!confirm('確定儲存優惠券？')) return;
-
-      const editId = document.getElementById('cm-id').value;
-      const codeData = {
-        id: editId ? Number(editId) : Date.now(),
-        code: document.getElementById('cm-code').value.toUpperCase(),
-        platform: document.getElementById('cm-platform').value,
-        desc: document.getElementById('cm-desc').value || '全館優惠',
-        link: document.getElementById('cm-link').value || '',
-        expiry: document.getElementById('cm-expiry').value || '',
-        active: editId ? (codesList.find(x => x.id === Number(editId))?.active ?? true) : true
-      };
-
-      if (editId) {
-        const idx = codesList.findIndex(x => x.id === Number(editId));
-        if (idx !== -1) codesList[idx] = codeData;
-      } else {
-        codesList.unshift(codeData);
-      }
-
-      pushToFirebase();
-      closeCodeModal();
-    }
-
-    function toggleCodeStatus(id) {
-      const c = codesList.find(x => x.id === id);
-      if (c) {
-        c.active = !c.active;
-        pushToFirebase();
-      }
-    }
-
-    function deleteCode(id) {
-      if (confirm('確定刪除優惠券？')) {
-        codesList = codesList.filter(c => c.id !== id);
-        pushToFirebase();
-      }
-    }
-
-    function clearAllCodes() {
-      if (confirm('⚠️ 確定清空所有優惠券？')) {
-        codesList = [];
         pushToFirebase();
       }
     }
