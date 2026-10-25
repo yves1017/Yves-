@@ -6,7 +6,7 @@
   <title>Yves 嚴選特惠 - 後台管理控制台</title>
   
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
-  <link rel="icon" type="image/png" href="./favicon.png?v=77">
+  <link rel="icon" type="image/png" href="./favicon.png?v=79">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -53,9 +53,9 @@
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=77" alt="Yves Logo" class="w-full h-full object-cover">
+            <img src="./favicon.png?v=79" alt="Yves Logo" class="w-full h-full object-cover">
           </div>
-          <h1 class="text-sm sm:text-base font-bold">Yves 後台管理 (安全連線)</h1>
+          <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
         </div>
         <div class="flex items-center gap-2">
           <button onclick="lockAdminConsole()" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow">
@@ -149,7 +149,6 @@
     </div>
   </div>
 
-  <!-- 16:9 精密排版圖片預覽彈窗 -->
   <div id="canvas-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-4 shadow-2xl space-y-3 flex flex-col items-center">
       <div class="flex justify-between items-center w-full">
@@ -204,7 +203,6 @@
 
     window.addEventListener('DOMContentLoaded', checkLockStatus);
 
-    // 鎖定狀態檢查（抗重整理與無痕）
     function checkLockStatus() {
       const lockUntil = localStorage.getItem('yves_admin_lock_until');
       const securityWarn = document.getElementById('security-warning');
@@ -266,7 +264,7 @@
           const lockTime = new Date().getTime() + (LOCK_MINUTES * 60 * 1000);
           localStorage.setItem('yves_admin_lock_until', lockTime);
           checkLockStatus();
-          alert(`❌ 密碼連續錯誤 ${MAX_ATTEMPTS} 次！系統已啟動安全鎖定 ${LOCK_MINUTES} 分鐘（重新整理無法解除）。`);
+          alert(`❌ 密碼連續錯誤 ${MAX_ATTEMPTS} 次！系統已啟動安全鎖定 ${LOCK_MINUTES} 分鐘。`);
         } else {
           checkLockStatus();
           document.getElementById('pin-input').value = '';
@@ -394,7 +392,7 @@
                 </div>
                 
                 <div class="flex items-center gap-1.5">
-                  <button onclick="generateStoryCanvas(${idx})" class="px-2 py-1.5 bg-purple-100 text-purple-700 rounded-lg font-bold text-xs active:bg-purple-200" title="生成 16:9 精密排版圖片"><i class="fa-solid fa-wand-magic-sparkles"></i> 圖片</button>
+                  <button onclick="generateStoryCanvas(${idx})" class="px-2 py-1.5 bg-purple-100 text-purple-700 rounded-lg font-bold text-xs active:bg-purple-200" title="生成 16:9 圖片"><i class="fa-solid fa-wand-magic-sparkles"></i> 圖片</button>
                   <button onclick="generateCopy(${idx})" class="px-2 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-xs active:bg-orange-200"><i class="fa-regular fa-copy"></i> 文案</button>
                   <button onclick="editProduct(${p.id})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
                   <button onclick="deleteProduct(${p.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
@@ -444,7 +442,7 @@
       pushToFirebase();
     }
 
-    // 完美比照附圖視覺的 16:9 Canvas 繪圖演算法
+    // 已取消「點我搶購！」按鈕，專注呈現連結指引
     function generateStoryCanvas(index) {
       const p = productsList[index];
       if (!p) return;
@@ -453,7 +451,7 @@
       const canvas = document.getElementById('story-canvas');
       const ctx = canvas.getContext('2d');
 
-      // 深藍背景漸層
+      // 背景深藍色漸層
       const grad = ctx.createLinearGradient(0, 0, 0, 1080);
       grad.addColorStop(0, '#0b1329');
       grad.addColorStop(0.5, '#1e293b');
@@ -461,9 +459,16 @@
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, 1920, 1080);
 
+      // 慶祝彩帶與點綴
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.beginPath();
+      ctx.arc(1800, 100, 12, 0, Math.PI * 2);
+      ctx.arc(1750, 180, 8, 0, Math.PI * 2);
+      ctx.fill();
+
       // 左上角 Header Logo
       ctx.fillStyle = '#f97316';
-      ctx.font = 'black 56px sans-serif';
+      ctx.font = 'black 54px sans-serif';
       ctx.fillText('Yves 嚴選特惠 🎁', 90, 115);
 
       ctx.fillStyle = '#94a3b8';
@@ -503,7 +508,7 @@
         const startX = 840;
         let currentY = 180;
 
-        // 獨立橘紅色平台標籤 (例如：【蝦皮直營】)
+        // 獨立橘紅色平台標籤【蝦皮直營】
         const platformTag = p.platform === 'SHOPEE' ? '【蝦皮直營】' : '【酷澎嚴選】';
         ctx.fillStyle = '#ef4444';
         ctx.beginPath();
@@ -515,7 +520,7 @@
 
         currentY += 100;
 
-        // 大標題：商品名稱（動態自動折行與自動縮放）
+        // 商品名稱主標題
         const rawName = p.name || '精選特惠商品';
         let fontSize = 52;
         if (rawName.length > 30) fontSize = 42;
@@ -542,7 +547,7 @@
         ctx.fillText(line, startX, currentY);
         currentY += fontSize + 25;
 
-        // 副標題：商品分類與關鍵字 (灰色)
+        // 灰色分類副標題
         ctx.fillStyle = '#94a3b8';
         ctx.font = 'bold 36px sans-serif';
         ctx.fillText(`${p.category || '熱銷必買'} · 破盤特價 · 限時好康`, startX, currentY);
@@ -564,7 +569,7 @@
 
         currentY += 100;
 
-        // 原價刪除線
+        // 原價與直降現省
         if (p.originalPrice > 0) {
           const origText = `原價 $${p.originalPrice}`;
           ctx.fillStyle = '#64748b';
@@ -579,7 +584,6 @@
           ctx.lineTo(startX + origWidth, currentY - 15);
           ctx.stroke();
 
-          // 綠框直降現省標籤
           const diff = p.originalPrice - p.promoPrice;
           if (diff > 0) {
             const saveText = `🔥 直降現省 $${diff}`;
@@ -599,23 +603,14 @@
 
         currentY += 120;
 
-        // 膠囊搶購按鈕區塊
-        ctx.fillStyle = '#facc15';
-        ctx.beginPath();
-        ctx.roundRect(startX, currentY - 55, 330, 80, 40);
-        ctx.fill();
-        ctx.fillStyle = '#0f172a';
-        ctx.font = 'black 40px sans-serif';
-        ctx.fillText('點我搶購！', startX + 45, currentY);
-
-        // 深藍色連結引導按鈕
+        // 單獨保留大號深藍色連結指引按鈕（取消黃色點我搶購）
         ctx.fillStyle = '#0f172a';
         ctx.beginPath();
-        ctx.roundRect(startX + 350, currentY - 55, 540, 80, 40);
+        ctx.roundRect(startX, currentY - 55, 930, 85, 42);
         ctx.fill();
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 36px sans-serif';
-        ctx.fillText('連結在上方與留言區 👆', startX + 380, currentY - 3);
+        ctx.font = 'black 40px sans-serif';
+        ctx.fillText('👉 限時特惠連結在上方與留言區 👆', startX + 130, currentY + 2);
 
         document.getElementById('canvas-modal').classList.remove('hidden');
       };
