@@ -1,7 +1,7 @@
 name: 自動更新爆款商品排程
 
 on:
-  workflow_dispatch: # 僅允許手動觸發
+  workflow_dispatch: # 僅保留手動點擊 Run workflow 觸發
 
 jobs:
   auto-fetch:
