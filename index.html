@@ -2,453 +2,267 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Yves 嚴選特惠 - 蝦皮/酷澎 精選好康折扣碼</title>
-  
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
-  <meta name="google-site-verification" content="yvQgAIt7HFiVFbtPji0xgWcfRuRZJyZVfgC_R1KpR00" />
-
-  <link rel="icon" type="image/png" href="./favicon.png?v=70">
-
-  <meta name="description" content="Yves 嚴選特惠網羅蝦皮 Shopee 與酷澎 Coupang 最新限時折價券、特惠商品與全站折扣碼。">
-  <meta name="keywords" content="Yves嚴選特惠, 蝦皮優惠碼, 酷澎折扣碼, Shopee特價, Coupang好康">
-  <meta name="robots" content="index, follow">
-
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Yves 嚴選特惠 - 蝦皮/酷澎 精選好康折扣碼">
-  <meta property="og:description" content="天天即時更新蝦皮與酷澎最新限時優惠與全站折扣碼！市價最便宜購買連結直接領。">
-  <meta property="og:image" content="https://chenyves1017.github.io/yves-shop/favicon.png">
-  <meta property="og:url" content="https://chenyves1017.github.io/yves-shop/">
-
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-Z8SZ67GGTC"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-Z8SZ67GGTC');
-  </script>
-
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>熱銷爆款商品推薦</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- FontAwesome 圖示 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
   <style>
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    :root {
+      --primary-color: #ee4d2d;
+      --hover-color: #d73211;
+      --bg-color: #f5f5f5;
+    }
+    body {
+      background-color: var(--bg-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .navbar-brand {
+      font-weight: 800;
+      color: var(--primary-color) !important;
+      font-size: 1.5rem;
+    }
+    .hero-banner {
+      background: linear-gradient(135deg, #ff7337 0%, #ee4d2d 100%);
+      color: white;
+      padding: 2.5rem 1rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 10px 20px rgba(238, 77, 45, 0.2);
+    }
+    .product-card {
+      border: none;
+      border-radius: 12px;
+      transition: all 0.25s ease-in-out;
+      background: #ffffff;
+      overflow: hidden;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .product-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    }
+    .img-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 100%; /* 1:1 正方形比例 */
+      overflow: hidden;
+      background-color: #eaeaea;
+    }
+    .product-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+    .product-card:hover .product-img {
+      transform: scale(1.05);
+    }
+    .badge-hot {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: var(--primary-color);
+      color: white;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+    .card-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+    .product-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      line-height: 1.4;
+      color: #333333;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 2.7rem;
+      margin-bottom: 0.75rem;
+    }
+    .price-container {
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .promo-price {
+      color: var(--primary-color);
+      font-size: 1.35rem;
+      font-weight: 800;
+    }
+    .original-price {
+      color: #999999;
+      text-decoration: line-through;
+      font-size: 0.85rem;
+      margin-left: 6px;
+    }
+    .btn-buy {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      font-weight: 700;
+      padding: 10px;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+      width: 100%;
+      margin-top: 0.75rem;
+    }
+    .btn-buy:hover {
+      background-color: var(--hover-color);
+      color: white;
+    }
+    footer {
+      margin-top: auto;
+      background-color: #ffffff;
+      border-top: 1px solid #e9ecef;
+      padding: 1.5rem 0;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
   </style>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col font-sans selection:bg-orange-100 relative pb-16 sm:pb-0">
+<body>
 
-  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-14 sm:h-16">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
-            <img src="./favicon.png?v=70" alt="Yves Logo" class="w-full h-full object-cover">
-          </div>
-          <div>
-            <h1 class="text-lg sm:text-xl font-black tracking-tight text-gray-900">Yves <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-blue-600">嚴選特惠</span></h1>
-            <p class="text-[10px] sm:text-xs text-gray-400 font-medium hidden sm:block">蝦皮 Shopee × 酷澎 Coupang 每日最新限時好康</p>
-          </div>
-        </div>
-        <div class="flex flex-col items-end">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-semibold bg-emerald-50 text-emerald-600 border border-emerald-200">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span> App 深度直連
-          </span>
-          <span id="last-updated-tag" class="text-[9px] sm:text-[10px] text-gray-400 font-mono mt-0.5">即時載入中...</span>
-        </div>
-      </div>
+  <!-- 頂部導覽列 -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+    <div class="container">
+      <a class="navbar-brand" href="#"><i class="fa-solid fa-bag-shopping me-2"></i>Yves爆款嚴選</a>
+      <span class="navbar-text fs-6 text-muted">每日即時更新熱門商品</span>
     </div>
-  </header>
+  </nav>
 
-  <section class="bg-gradient-to-r from-orange-600 via-rose-600 to-blue-700 text-white py-4 sm:py-6 shadow-inner">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between mb-2.5">
-        <h2 class="text-xs sm:text-base font-bold flex items-center gap-1.5"><i class="fa-solid fa-ticket text-yellow-300"></i> 本日全站獨家優惠券</h2>
-        <button onclick="copyAllPromoCodes()" class="px-2.5 py-1 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-extrabold text-[10px] sm:text-xs rounded-lg shadow transition-all flex items-center gap-1">
-          <i class="fa-solid fa-copy"></i> 打包複製所有券碼
-        </button>
-      </div>
-      <div id="promo-codes-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5"></div>
-    </div>
-  </section>
-
-  <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
-    <div class="bg-white rounded-2xl p-3 sm:p-6 shadow-sm border border-gray-100 mb-6 space-y-3">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div class="flex p-1 bg-gray-100 rounded-xl w-full md:max-w-md">
-          <button onclick="setPlatform('ALL')" id="tab-ALL" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-800">全部平台</button>
-          <button onclick="setPlatform('SHOPEE')" id="tab-SHOPEE" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-orange-600">蝦皮 Shopee</button>
-          <button onclick="setPlatform('COUPANG')" id="tab-COUPANG" class="flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-blue-600">酷澎 Coupang</button>
-        </div>
-        <div class="relative flex-grow w-full md:max-w-md">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-          <input type="text" id="search-input" oninput="renderStorefront()" placeholder="搜尋商品名稱、關鍵字..." class="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:bg-white transition-all">
-        </div>
-      </div>
-
-      <div class="flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
-        <span class="text-gray-400 font-bold flex-shrink-0"><i class="fa-solid fa-fire text-orange-500"></i> 熱搜：</span>
-        <button onclick="quickSearch('洗衣膠囊')" class="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md font-medium flex-shrink-0">洗衣膠囊</button>
-        <button onclick="quickSearch('衛生紙')" class="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md font-medium flex-shrink-0">衛生紙</button>
-        <button onclick="quickSearch('零食')" class="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md font-medium flex-shrink-0">零食</button>
-        <button onclick="quickSearch('飲料')" class="px-2 py-0.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-md font-medium flex-shrink-0">飲料</button>
-      </div>
-
-      <div class="flex items-center gap-1.5 overflow-x-auto pt-1 pb-1 text-xs no-scrollbar -mx-1 px-1">
-        <span class="text-gray-400 font-bold flex-shrink-0 text-[11px]"><i class="fa-solid fa-filter"></i> 分類：</span>
-        <div id="category-bar-container" class="flex items-center gap-1.5"></div>
-      </div>
+  <!-- 主要內容區塊 -->
+  <main class="container my-4">
+    <div class="hero-banner text-center">
+      <h1 class="fw-bold mb-2">🔥 本週限時爆款折扣專區</h1>
+      <p class="mb-0 fs-6 opacity-90">嚴選熱銷排行榜商品，點擊即可享限時優惠！</p>
     </div>
 
-    <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
+    <!-- 商品列表卡片容器 -->
+    <div id="product-list" class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+      <div class="col-12 text-center py-5">
+        <div class="spinner-border text-danger" role="status" style="width: 3rem; height: 3rem;"></div>
+        <p class="mt-3 text-muted fw-bold">正在載入最新商品清單...</p>
+      </div>
+    </div>
   </main>
 
-  <div class="fixed bottom-4 right-4 z-30 flex flex-col gap-2">
-    <a href="https://line.me/ti/g2/gxZKdewOktC1WMiAuL5WR-TY08RGjUMG_Yq8cQ?utm_source=invitation&utm_medium=link_copy&utm_campaign=default" target="_blank" class="flex items-center gap-2 px-3.5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg font-bold text-xs transition-all active:scale-95 border-2 border-white animate-bounce">
-      <i class="fa-brands fa-line text-lg"></i> <span class="hidden sm:inline">加入「蝦皮優惠情報」社群</span><span class="sm:hidden">加入 LINE 社群</span>
-    </a>
-  </div>
-
-  <footer class="bg-gray-900 text-gray-400 py-6 text-center text-[11px] border-t border-gray-800 space-y-2">
-    <p>© 2026 Yves 嚴選特惠 | 導購連結與優惠即時更新</p>
-    <p id="last-updated-footer" class="text-gray-500 text-[10px] font-mono">最後更新時間：載入中...</p>
-    <button onclick="openChangelog()" class="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-[10px] font-bold transition-all border border-gray-700">
-      <i class="fa-solid fa-mobile-screen-button text-emerald-400"></i> App Deep Link 直連升級 (v7.0)
-    </button>
+  <!-- 頁尾 -->
+  <footer class="text-center">
+    <div class="container">
+      <p class="mb-0">© 2026 Yves Shop. All rights reserved.</p>
+    </div>
   </footer>
 
-  <div id="changelog-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
-    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4 max-h-[80vh] overflow-y-auto">
-      <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="text-base font-bold text-gray-900"><i class="fa-solid fa-list-check text-orange-500"></i> Yves 嚴選特惠 - 更新日誌</h3>
-        <button onclick="closeChangelog()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
-      </div>
-      <div class="space-y-3 text-xs text-gray-700">
-        <div class="border-l-2 border-emerald-500 pl-3 space-y-1">
-          <p class="font-bold text-gray-900">v7.0 App 直連版 (2026/10/25)</p>
-          <p class="text-gray-500">• 手機瀏覽時點擊連結自動優先拉起「蝦皮 App / 酷澎 App」</p>
-          <p class="text-gray-500">• 解決瀏覽器未登入導致流失訂單的問題</p>
-          <p class="text-gray-500">• 前台全面整合熱銷冠亞季軍勳章與一鍵複製優惠券</p>
-        </div>
-      </div>
-      <button onclick="closeChangelog()" class="w-full py-2.5 bg-gray-100 text-gray-800 font-bold rounded-xl text-xs">關閉</button>
-    </div>
-  </div>
+  <!-- 載入 Firebase 8.x SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    function sanitize(str) {
-      if (!str) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
+    // 1. 初始化 Firebase Realtime Database
     const firebaseConfig = {
-      apiKey: "AIzaSyBcI0OjXhHwOMsr_HhubzfLlVf_9wVcERI",
-      authDomain: "shopee-da43f.firebaseapp.com",
-      databaseURL: "https://shopee-da43f-default-rtdb.firebaseio.com",
-      projectId: "shopee-da43f",
-      storageBucket: "shopee-da43f.firebasestorage.app",
-      messagingSenderId: "669756265345",
-      appId: "1:669756265345:web:b55f67923b1b81687f0e80",
-      measurementId: "G-Z8SZ67GGTC"
+      databaseURL: "https://shopee-da43f-default-rtdb.firebaseio.com"
     };
 
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
     const db = firebase.database();
 
-    let currentPlatform = 'ALL';
-    let currentCategory = 'ALL';
-    let storeData = { products: [], codes: [], lastUpdated: null };
-
-    db.ref('yves_shop_data').on('value', (snapshot) => {
-      const val = snapshot.val();
-      if (val) {
-        storeData.products = val.products || [];
-        storeData.codes = val.codes || [];
-        storeData.lastUpdated = val.lastUpdated || null;
-      } else {
-        storeData = { products: [], codes: [], lastUpdated: null };
-      }
-      renderStorefront();
-    });
-
-    setInterval(updateCountdowns, 1000);
-
-    function setPlatform(platform) {
-      currentPlatform = platform;
-      ['ALL', 'SHOPEE', 'COUPANG'].forEach(p => {
-        const btn = document.getElementById(`tab-${p}`);
-        if (btn) {
-          btn.className = p === platform 
-            ? "flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all shadow-sm bg-white text-gray-800"
-            : "flex-1 py-2 text-xs sm:text-sm font-bold rounded-lg transition-all text-gray-500 hover:text-gray-900";
-        }
-      });
-      renderStorefront();
-    }
-
-    function setCategory(cat) {
-      currentCategory = cat;
-      renderStorefront();
-    }
-
-    function quickSearch(keyword) {
-      const input = document.getElementById('search-input');
-      if (input) {
-        input.value = keyword;
-        renderStorefront();
-      }
-    }
-
-    function renderCategoryBar() {
-      const catContainer = document.getElementById('category-bar-container');
-      if (!catContainer) return;
-
-      const existingCategories = Array.from(new Set(
-        (storeData.products || [])
-          .map(p => (p.category || '').trim())
-          .filter(c => c !== '')
-      ));
-
-      let categoriesToDisplay = ['ALL', ...existingCategories];
-      if (!categoriesToDisplay.includes(currentCategory)) {
-        currentCategory = 'ALL';
-      }
-
-      catContainer.innerHTML = categoriesToDisplay.map(cat => {
-        const isActive = cat === currentCategory;
-        const displayName = cat === 'ALL' ? '全部' : sanitize(cat);
-        return `
-          <button onclick="setCategory('${sanitize(cat)}')" class="px-3 py-1.5 rounded-lg font-bold flex-shrink-0 transition-all text-xs ${
-            isActive 
-              ? 'bg-orange-500 text-white shadow-sm' 
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }">
-            ${displayName}
-          </button>
-        `;
-      }).join('');
-    }
-
-    function isExpired(expiryStr) {
-      if (!expiryStr) return false;
-      const expiryTime = new Date(expiryStr).getTime();
-      const now = new Date().getTime();
-      return expiryTime <= now;
-    }
-
-    function trackClick(productId) {
-      if (!productId) return;
-      const p = storeData.products.find(x => x.id === productId);
-      if (p) {
-        p.clicks = (p.clicks || 0) + 1;
-        db.ref('yves_shop_data/products').set(storeData.products);
-      }
-    }
-
-    // 關鍵升級：手機 Deep Link 跳轉處理
-    function openAppOrUrl(url, platform) {
-      if (!url || url === '#' || url === 'undefined') return;
-
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      
-      if (isMobile) {
-        let appUrl = url;
-        if (platform === 'SHOPEE' && url.includes('shopee.tw')) {
-          appUrl = url.replace('https://shopee.tw/', 'shopee://');
-        } else if (platform === 'COUPANG' && url.includes('coupang.com')) {
-          appUrl = url.replace('https://', 'coupang://');
-        }
-
-        const now = Date.now();
-        window.location.href = appUrl;
-        
-        // 若沒有安裝 App 則在 1.5 秒後備用切回網頁版
-        setTimeout(() => {
-          if (Date.now() - now < 2000) {
-            window.open(url, '_blank', 'noopener,noreferrer');
-          }
-        }, 1500);
-      } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
-    }
-
-    function renderStorefront() {
-      const updateStr = storeData.lastUpdated ? sanitize(storeData.lastUpdated) : '尚無更新紀錄';
-      document.getElementById('last-updated-tag').innerText = `最後更新：${updateStr}`;
-      document.getElementById('last-updated-footer').innerText = `最後更新時間：${updateStr}`;
-
-      renderCategoryBar();
-
-      const searchInput = document.getElementById('search-input');
-      const searchKeyword = searchInput ? searchInput.value.toLowerCase().trim() : '';
-      const promoContainer = document.getElementById('promo-codes-container');
-      
-      const activeCodes = (storeData.codes || []).filter(c => c.active && !isExpired(c.expiry));
-      
-      if (promoContainer) {
-        promoContainer.innerHTML = activeCodes.length === 0 
-          ? `<div class="col-span-full text-center py-2 text-xs text-orange-100">目前尚無獨家優惠碼</div>`
-          : activeCodes.map(c => `
-            <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-2.5 sm:p-3 flex flex-col justify-between text-white space-y-2">
-              <div class="flex items-center justify-between gap-2">
-                <div>
-                  <span class="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded ${c.platform === 'SHOPEE' ? 'bg-orange-500/90' : 'bg-blue-500/90'}">${sanitize(c.platform)}</span>
-                  <p class="text-xs font-semibold mt-1">${sanitize(c.desc)}</p>
-                </div>
-                <button onclick="copyAndRedirect('${sanitize(c.code)}', '${sanitize(c.link)}', null, '${c.platform}')" class="px-2.5 py-1.5 bg-yellow-400 active:bg-yellow-300 text-gray-900 font-black text-xs rounded-lg shadow transition-all active:scale-95 flex-shrink-0">
-                  ${sanitize(c.code)} <i class="fa-regular fa-copy ml-1"></i>
-                </button>
-              </div>
-              
-              ${c.expiry ? `<div class="text-[10px] bg-black/50 text-yellow-300 px-2.5 py-1.5 rounded font-mono font-extrabold border border-yellow-400/30 shadow-sm countdown-timer" data-expiry="${sanitize(c.expiry)}">⏳ 載入倒數...</div>` : ''}
-
-              ${c.link ? `
-                <button onclick="openAppOrUrl('${sanitize(c.link)}', '${c.platform}')" class="w-full py-1.5 bg-white/20 active:bg-white/30 text-white font-bold text-[11px] rounded-lg text-center transition-all flex items-center justify-center gap-1">
-                  <i class="fa-solid fa-link text-[10px]"></i> 前往領券頁面
-                </button>
-              ` : ''}
-            </div>
-          `).join('');
-      }
-
-      const sortedByClicks = [...(storeData.products || [])].sort((a, b) => (b.clicks || 0) - (a.clicks || 0));
-      const top1Id = sortedByClicks[0]?.clicks > 0 ? sortedByClicks[0]?.id : null;
-      const top2Id = sortedByClicks[1]?.clicks > 0 ? sortedByClicks[1]?.id : null;
-      const top3Id = sortedByClicks[2]?.clicks > 0 ? sortedByClicks[2]?.id : null;
-
-      const filtered = (storeData.products || []).filter(p => {
-        if (isExpired(p.expiry)) return false;
-        const matchPlatform = currentPlatform === 'ALL' || p.platform === currentPlatform;
-        const matchCategory = currentCategory === 'ALL' || (p.category || '').trim() === currentCategory;
-        const matchSearch = (p.name || '').toLowerCase().includes(searchKeyword) || (p.category || '').toLowerCase().includes(searchKeyword);
-        return matchPlatform && matchCategory && matchSearch;
-      });
-
-      const grid = document.getElementById('product-grid');
-      if (grid) {
-        grid.innerHTML = filtered.length === 0 
-          ? `<div class="col-span-full py-12 text-center text-gray-400"><i class="fa-solid fa-box-open text-3xl mb-2"></i><p class="text-xs">沒有找到符合的商品</p></div>`
-          : filtered.map(p => {
-            const orig = p.originalPrice || 0;
-            const promo = p.promoPrice || 0;
-            const saveAmount = orig > promo ? orig - promo : 0;
-            const discount = orig > 0 ? Math.round((1 - promo / orig) * 100) : 0;
-            const isShopee = p.platform === 'SHOPEE';
-            
-            let badgeHtml = '';
-            if (p.id === top1Id) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-400 text-gray-900 shadow-md">🏆 熱銷 NO.1</span>`;
-            else if (p.id === top2Id) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-slate-300 text-gray-900 shadow-md">🥈 熱銷 NO.2</span>`;
-            else if (p.id === top3Id) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-700 text-white shadow-md">🥉 熱銷 NO.3</span>`;
-            else if (p.badge === 'HOT') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-rose-600 text-white shadow-md">🔥 熱銷爆款</span>`;
-            else if (p.badge === 'FLASH') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-amber-500 text-white shadow-md">⚡ 限時直降</span>`;
-            else if (p.badge === 'NEW') badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-emerald-600 text-white shadow-md">✨ 新上架</span>`;
-            else if (discount > 0) badgeHtml = `<span class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded-md text-[9px] font-black bg-red-600 text-white shadow-md">-${discount}%</span>`;
-
-            return `
-              <div class="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between">
-                <div class="relative aspect-square overflow-hidden bg-gray-100">
-                  <img src="${sanitize(p.image)}" alt="${sanitize(p.name)}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                  <span class="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-md text-[9px] font-black text-white shadow-md ${isShopee ? 'bg-orange-600' : 'bg-blue-600'}">${isShopee ? '蝦皮' : '酷澎'}</span>
-                  ${badgeHtml}
-                </div>
-                <div class="p-2.5 sm:p-4 flex-grow flex flex-col justify-between space-y-2.5">
-                  <div>
-                    <div class="flex justify-between items-center">
-                      <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">${sanitize(p.category || '精選商品')}</span>
-                      ${saveAmount > 0 ? `<span class="text-[9px] font-black text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">省 $${saveAmount}</span>` : ''}
-                    </div>
-                    <h3 class="text-xs sm:text-sm font-bold text-gray-800 line-clamp-2 mt-0.5 group-hover:text-orange-600 transition-colors">${sanitize(p.name)}</h3>
-                  </div>
-                  <div>
-                    <div class="flex items-baseline gap-1.5">
-                      <span class="text-sm sm:text-lg font-black text-red-600">NT$ ${promo}</span>
-                      <span class="text-[10px] sm:text-xs text-gray-400 line-through">NT$ ${orig}</span>
-                    </div>
-                    
-                    ${p.expiry ? `<div class="mt-1.5 text-[10px] bg-rose-100/90 text-rose-700 px-2.5 py-1.5 rounded-md border border-rose-300 font-mono font-extrabold shadow-sm countdown-timer" data-expiry="${sanitize(p.expiry)}">⏳ 載入倒數...</div>` : ''}
-                    ${p.code ? `<div class="mt-1 text-[10px] sm:text-[11px] bg-orange-50 text-orange-700 px-1.5 py-1 rounded border border-orange-200 flex justify-between items-center"><span>券碼: <strong>${sanitize(p.code)}</strong></span><button onclick="copyAndRedirect('${sanitize(p.code)}', '${sanitize(p.link)}', ${p.id}, '${p.platform}')" class="text-orange-600 font-bold hover:underline">複製並前往</button></div>` : ''}
-                    
-                    <div class="mt-2.5 flex gap-1.5">
-                      <button onclick="handlePurchaseClick(${p.id}, '${sanitize(p.link)}', '${p.platform}')" class="flex-grow py-2 rounded-xl font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm ${isShopee ? 'bg-orange-500 active:bg-orange-600 text-white' : 'bg-blue-600 active:bg-blue-700 text-white'}">前往購買 <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i></button>
-                      <button onclick="shareProduct('${sanitize(p.name)}', '${p.promoPrice}', '${sanitize(p.link)}')" class="px-2.5 py-2 bg-gray-100 active:bg-gray-200 text-gray-600 rounded-xl text-xs font-bold transition-all" title="分享商品"><i class="fa-solid fa-share-nodes"></i></button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            `;
-          }).join('');
-      }
-      updateCountdowns();
-    }
-
-    function handlePurchaseClick(id, link, platform) {
-      trackClick(id);
-      openAppOrUrl(link, platform);
-    }
-
-    function updateCountdowns() {
-      let hasExpired = false;
-      document.querySelectorAll('.countdown-timer').forEach(el => {
-        const expiryTime = new Date(el.getAttribute('data-expiry')).getTime();
-        const now = new Date().getTime();
-        const diff = expiryTime - now;
-
-        if (diff <= 0) {
-          hasExpired = true;
-        } else {
-          const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-          const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-          const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-          const secs = Math.floor((diff % (1000 * 60)) / 1000);
-          el.innerText = `⏳ 剩餘 ${days > 0 ? days + '天 ' : ''}${String(hours).padStart(2,'0')}:${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
-        }
-      });
-
-      if (hasExpired) {
-        renderStorefront();
-      }
-    }
-
-    function copyAndRedirect(code, targetUrl, productId, platform) {
-      if (productId) trackClick(productId);
-      if (code) {
-        navigator.clipboard.writeText(code);
-      }
-      if (targetUrl && targetUrl !== 'undefined' && targetUrl !== '') {
-        alert(`✅ 優惠碼 [${code || '無'}] 已複製！\n即將為您前往專屬購買頁面。`);
-        openAppOrUrl(targetUrl, platform);
-      } else {
-        alert(`✅ 優惠碼 [${code}] 已複製到剪貼簿！`);
-      }
-    }
-
-    function copyAllPromoCodes() {
-      const activeCodes = (storeData.codes || []).filter(c => c.active && !isExpired(c.expiry));
-      if (activeCodes.length === 0) {
-        alert('目前沒有可用的優惠碼');
+    // 2. 點擊數原子累加 (+1) 並進行跳轉
+    function handleProductClick(productId, targetUrl) {
+      if (!targetUrl || targetUrl === '#') {
+        alert('無效的商品連結');
         return;
       }
-      const allStr = activeCodes.map(c => `${c.platform}: ${c.code} (${c.desc})`).join('\n');
-      navigator.clipboard.writeText(allStr);
-      alert(`✅ 已一次複製全站 ${activeCodes.length} 組獨家優惠碼！`);
+
+      const productRef = db.ref('yves_shop_data/products/' + productId);
+
+      // 使用 Firebase Transaction 確保點擊次數準確加算
+      productRef.child('clicks').transaction((currentClicks) => {
+        return (currentClicks || 0) + 1;
+      }).then(() => {
+        window.open(targetUrl, '_blank');
+      }).catch((err) => {
+        console.error("點擊計數更新發生異常：", err);
+        window.open(targetUrl, '_blank');
+      });
     }
 
-    function shareProduct(title, price, url) {
-      const shareText = `🔥【Yves 嚴選好康】${title}\n💰 限時破盤價：NT$ ${price}\n👉 最便宜購買連結：`;
-      if (navigator.share) {
-        navigator.share({ title: title, text: shareText, url: url }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(`${shareText}\n${url}`);
-        alert(`✅ 已複製商品推薦文案與購買連結！\n\n${shareText}\n${url}`);
+    // 3. 監聽 Firebase 資料庫變化並即時渲染畫面
+    db.ref('yves_shop_data/products').on('value', (snapshot) => {
+      const products = snapshot.val() || [];
+      const container = document.getElementById('product-list');
+      container.innerHTML = '';
+
+      if (!products || products.length === 0) {
+        container.innerHTML = `
+          <div class="col-12 text-center py-5">
+            <i class="fa-solid fa-box-open text-muted fs-1 mb-3"></i>
+            <p class="text-muted fs-5">目前暫無上架商品，請稍後再來！</p>
+          </div>
+        `;
+        return;
       }
-    }
 
-    function openChangelog() { document.getElementById('changelog-modal').classList.remove('hidden'); }
-    function closeChangelog() { document.getElementById('changelog-modal').classList.add('hidden'); }
+      products.forEach((product, index) => {
+        if (!product) return;
+
+        const badgeText = product.badge || 'HOT';
+        const imgUrl = product.image || 'https://via.placeholder.com/600?text=No+Image';
+        const origPriceHtml = product.originalPrice && product.originalPrice > product.promoPrice 
+          ? `<span class="original-price">NT$ ${product.originalPrice}</span>` 
+          : '';
+
+        const cardHtml = `
+          <div class="col">
+            <div class="card product-card">
+              <div class="img-wrapper">
+                <img src="${imgUrl}" class="product-img" alt="${product.name}" onerror="this.src='https://via.placeholder.com/600?text=Image+Error'">
+                <span class="badge-hot">${badgeText}</span>
+              </div>
+              <div class="card-body">
+                <h5 class="product-title" title="${product.name}">${product.name}</h5>
+                <div class="price-container">
+                  <div>
+                    <span class="promo-price">NT$ ${product.promoPrice || 0}</span>
+                    ${origPriceHtml}
+                  </div>
+                  <button class="btn btn-buy shadow-sm" onclick="handleProductClick(${index}, '${product.link}')">
+                    <i class="fa-solid fa-cart-shopping me-1"></i> 前往購買
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        container.innerHTML += cardHtml;
+      });
+    }, (error) => {
+      console.error("Firebase 讀取失敗：", error);
+      document.getElementById('product-list').innerHTML = `
+        <div class="col-12 text-center py-5 text-danger">
+          <i class="fa-solid fa-triangle-exclamation fs-1 mb-2"></i>
+          <p>載入商品失敗，請檢查網路連線或權限設定。</p>
+        </div>
+      `;
+    });
   </script>
 </body>
 </html>
