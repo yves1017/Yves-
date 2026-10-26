@@ -21,7 +21,7 @@ def init_firebase():
             print("⚠️ 未檢測到 FIREBASE_SERVICE_ACCOUNT 環境變數，請檢查 GitHub Secrets 設定")
 
 def fetch_shopee_deals():
-    """爬取蝦皮熱門商品真實資料與個別商品專屬網址"""
+    """抓取蝦皮熱銷商品資料與專屬獨立網址"""
     timestamp = int(time.time())
     readable_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     
@@ -61,11 +61,11 @@ def fetch_shopee_deals():
                 if original_price < promo_price or original_price == 0:
                     original_price = promo_price
                 
-                # 商品圖片 URL 還原
+                # 商品圖片 URL
                 image_hash = item.get("image", "")
                 image_url = f"https://down-tw.img.susercontent.com/file/{image_hash}" if image_hash else "https://via.placeholder.com/600"
                 
-                # 特定商品專屬獨立網址
+                # 特定商品專屬網址
                 raw_product_link = f"https://shopee.tw/product/{shop_id}/{item_id}"
                 
                 fetched_products.append({
@@ -77,7 +77,7 @@ def fetch_shopee_deals():
                     "originalPrice": original_price,
                     "promoPrice": promo_price,
                     "image": image_url,
-                    "link": raw_product_link, # 帶入專屬商品網址
+                    "link": raw_product_link,
                     "code": "",
                     "clicks": 0
                 })
@@ -87,7 +87,7 @@ def fetch_shopee_deals():
     except Exception as e:
         print(f"🚨 抓取過程發生異常：{e}")
 
-    # 備用真實格式（當請求受阻時）
+    # 備用樣板（當請求受阻時）
     if not fetched_products:
         fetched_products = [
             {
@@ -108,7 +108,7 @@ def fetch_shopee_deals():
     return fetched_products
 
 def update_firebase_sdk(products):
-    """透過 Firebase Admin SDK 更新資料庫"""
+    """透過 Firebase Admin SDK 安全更新資料庫（不覆蓋現有點擊數）"""
     try:
         init_firebase()
         ref = db.reference("yves_shop_data/products")
