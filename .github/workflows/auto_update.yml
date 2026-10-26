@@ -1,9 +1,7 @@
 name: 自動更新爆款商品排程
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
-  workflow_dispatch:
+  workflow_dispatch: # 僅保留手動觸發
 
 jobs:
   auto-fetch:
