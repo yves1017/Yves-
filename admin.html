@@ -2,98 +2,634 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>商品後台管理</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background-color: #f4f6f9; font-family: sans-serif; }
-    .table-img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Yves 嚴選特惠 - 後台管理控制台</title>
+  
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval';">
+  <link rel="icon" type="image/png" href="./favicon.png?v=80">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 min-h-screen font-sans selection:bg-orange-100 pb-10">
 
-  <div class="container py-4">
-    <header class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
-      <h1 class="fs-3 fw-bold">⚙️ 商品後台管理</h1>
-      <button class="btn btn-primary btn-sm" onclick="fetchProducts()">🔄 重新整理</button>
-    </header>
-
-    <div class="card p-3 shadow-sm">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>圖片</th>
-              <th>商品名稱</th>
-              <th>價格</th>
-              <th>📊 累積點擊數</th>
-              <th>商品連結</th>
-              <th>操作</th>
-            </tr>
-          </thead>
-          <tbody id="admin-table-body">
-            <tr><td colspan="6" class="text-center py-4">載入中...</td></tr>
-          </tbody>
-        </table>
+  <!-- PIN 碼解鎖視窗（帶防爆破 3 次鎖定機制） -->
+  <div id="pin-modal" class="fixed inset-0 bg-gray-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h2 class="text-base sm:text-lg font-black text-gray-900">進入加密管理控制台</h2>
+      <p id="security-warning" class="text-xs text-gray-500">請輸入管理員 PIN 碼（限試 3 次）</p>
+      <input type="password" id="pin-input" placeholder="請輸入密碼" onkeypress="if(event.key==='Enter') verifyPIN()" class="w-full text-center tracking-widest text-lg font-bold py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500">
+      <button onclick="verifyPIN()" id="btn-login" class="w-full py-3 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-sm transition-all shadow-md">安全驗證進入</button>
+      
+      <div class="pt-1">
+        <button onclick="showForgotPasswordModal()" class="text-xs text-orange-600 font-bold hover:underline">
+          <i class="fa-solid fa-circle-question"></i> 忘記密碼？
+        </button>
       </div>
     </div>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <!-- 忘記密碼提示彈窗 -->
+  <div id="forgot-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+      <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto text-xl">
+        <i class="fa-solid fa-key"></i>
+      </div>
+      <h3 class="text-base font-bold text-gray-900">忘記密碼</h3>
+      <div class="bg-gray-50 rounded-xl p-3 border border-gray-200 text-xs text-gray-700 text-center">
+        <p class="font-bold">預設 PIN 碼為 6 位數字。</p>
+      </div>
+      <button onclick="closeForgotPasswordModal()" class="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-xl text-xs">返回登入</button>
+    </div>
+  </div>
+
+  <div id="admin-content" class="hidden min-h-screen flex flex-col">
+    <header class="bg-gray-900 text-white border-b border-gray-800 sticky top-0 z-40">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden flex-shrink-0 bg-transparent">
+            <img src="./favicon.png?v=80" alt="Yves Logo" class="w-full h-full object-cover">
+          </div>
+          <h1 class="text-sm sm:text-base font-bold">Yves 後台管理</h1>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="lockAdminConsole()" class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow">
+            <i class="fa-solid fa-lock"></i> 離開並鎖定
+          </button>
+          <a href="./index.html" target="_blank" class="px-3 py-1.5 bg-orange-600 active:bg-orange-700 text-white rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow">
+            <i class="fa-solid fa-eye"></i> 預覽前台
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
+      <div class="flex border-b border-gray-200 bg-white rounded-t-2xl px-2 sm:px-4 pt-2 gap-1 sm:gap-2">
+        <button onclick="switchTab('products')" id="btn-tab-products" class="flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-orange-500 text-orange-600 flex items-center justify-center gap-1.5 transition-all">
+          <i class="fa-solid fa-box-open"></i> 商品管理
+        </button>
+        <button onclick="switchTab('codes')" id="btn-tab-codes" class="flex-1 sm:flex-none px-4 py-2.5 font-bold text-xs sm:text-sm border-b-2 border-transparent text-gray-500 flex items-center justify-center gap-1.5 transition-all">
+          <i class="fa-solid fa-ticket"></i> 優惠券管理
+        </button>
+      </div>
+
+      <section id="panel-products" class="space-y-3">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100 gap-2.5">
+          <div class="relative w-full sm:w-64">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" id="admin-search-input" oninput="renderAdminUI()" placeholder="搜尋後台商品..." class="w-full pl-8 pr-3 py-1.5 border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-orange-500">
+          </div>
+
+          <div class="flex flex-wrap gap-1.5 w-full sm:w-auto">
+            <button onclick="exportJSON()" class="flex-1 sm:flex-none px-2.5 py-2 bg-emerald-100 active:bg-emerald-200 text-emerald-700 font-bold text-xs rounded-xl"><i class="fa-solid fa-download"></i> 備份</button>
+            <button onclick="document.getElementById('import-file').click()" class="flex-1 sm:flex-none px-2.5 py-2 bg-purple-100 active:bg-purple-200 text-purple-700 font-bold text-xs rounded-xl"><i class="fa-solid fa-upload"></i> 匯入</button>
+            <input type="file" id="import-file" class="hidden" accept=".json" onchange="importJSON(event)">
+            <button onclick="clearAllProducts()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button>
+            <button onclick="openProductModal()" class="flex-grow sm:flex-none px-3 py-2 bg-orange-500 text-white font-bold text-xs rounded-xl shadow">+ 新增商品</button>
+          </div>
+        </div>
+
+        <div id="products-container" class="space-y-3"></div>
+      </section>
+
+      <section id="panel-codes" class="hidden space-y-3">
+        <div class="flex justify-between items-center bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-gray-100">
+          <h2 class="text-sm sm:text-base font-bold text-gray-800">全站優惠券列表</h2>
+          <div class="flex gap-1.5">
+            <button onclick="clearAllCodes()" class="px-2.5 py-2 bg-red-100 text-red-600 font-bold text-xs rounded-xl">清空</button>
+            <button onclick="openCodeModal()" class="px-3 py-2 bg-blue-600 text-white font-bold text-xs rounded-xl shadow">+ 新增優惠券</button>
+          </div>
+        </div>
+
+        <div id="codes-container" class="space-y-3"></div>
+      </section>
+    </main>
+  </div>
+
+  <div id="product-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <h3 id="pm-title" class="text-base font-bold text-gray-900">新增商品</h3>
+      <input type="hidden" id="pm-id">
+      <div class="space-y-2.5 text-xs">
+        <input type="text" id="pm-name" placeholder="商品名稱" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <div class="grid grid-cols-2 gap-2">
+          <select id="pm-platform" class="p-2.5 border border-gray-300 rounded-xl">
+            <option value="SHOPEE">蝦皮 Shopee</option>
+            <option value="COUPANG">酷澎 Coupang</option>
+          </select>
+          <input type="text" id="pm-category" placeholder="分類 (美食/3C)" class="p-2.5 border border-gray-300 rounded-xl">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <select id="pm-badge" class="p-2.5 border border-gray-300 rounded-xl font-bold">
+            <option value="NONE">熱門標籤：預設折扣</option>
+            <option value="HOT">🔥 熱銷爆款</option>
+            <option value="FLASH">⚡ 限時直降</option>
+            <option value="NEW">✨ 新上架</option>
+          </select>
+          <input type="datetime-local" id="pm-expiry" class="p-2.5 border border-gray-300 rounded-xl" title="限時倒數截止時間">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="number" id="pm-orig" placeholder="原價" class="p-2.5 border border-gray-300 rounded-xl">
+          <input type="number" id="pm-promo" placeholder="特惠價" class="p-2.5 border border-gray-300 rounded-xl">
+        </div>
+        <input type="text" id="pm-image" placeholder="圖片網址 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="pm-link" placeholder="分潤連結 (URL)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="pm-code" placeholder="特定優惠碼 (選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="pm-webhook" placeholder="Discord Webhook URL (選填)" class="w-full p-2.5 border border-gray-200 rounded-xl bg-gray-50 font-mono text-[10px]">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeProductModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="saveProduct()" class="px-4 py-2.5 bg-orange-500 text-white font-bold rounded-xl text-xs">儲存並同步</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="copy-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3">
+      <div class="flex justify-between items-center">
+        <h3 class="text-base font-bold text-gray-900"><i class="fa-brands fa-threads text-orange-500"></i> 導購宣傳文案</h3>
+        <button onclick="closeCopyModal()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <textarea id="copy-text" rows="8" class="w-full p-3 border border-gray-200 rounded-xl text-xs font-mono bg-gray-50 focus:bg-white focus:outline-none"></textarea>
+      <button onclick="copyGeneratedText()" class="w-full py-3 bg-orange-500 active:bg-orange-600 text-white font-bold rounded-xl text-xs shadow">複製整段文案</button>
+    </div>
+  </div>
+
+  <div id="code-modal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3">
+    <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto">
+      <h3 id="cm-title" class="text-base font-bold text-gray-900">新增優惠券</h3>
+      <input type="hidden" id="cm-id">
+      <div class="space-y-2.5 text-xs">
+        <input type="text" id="cm-code" placeholder="優惠碼" class="w-full p-2.5 border border-gray-300 rounded-xl font-mono uppercase">
+        <select id="cm-platform" class="w-full p-2.5 border border-gray-300 rounded-xl">
+          <option value="SHOPEE">蝦皮 Shopee</option>
+          <option value="COUPANG">酷澎 Coupang</option>
+        </select>
+        <input type="text" id="cm-desc" placeholder="說明 (如: 滿 $499 折 $50)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="text" id="cm-link" placeholder="專屬領券連結 (URL，選填)" class="w-full p-2.5 border border-gray-300 rounded-xl">
+        <input type="datetime-local" id="cm-expiry" class="w-full p-2.5 border border-gray-300 rounded-xl" title="優惠券倒數截止時間 (選填)">
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="closeCodeModal()" class="px-4 py-2.5 bg-gray-100 rounded-xl text-xs font-bold">取消</button>
+        <button onclick="saveCode()" class="px-4 py-2.5 bg-blue-600 text-white font-bold rounded-xl text-xs">儲存優惠券</button>
+      </div>
+    </div>
+  </div>
 
   <script>
-    const firebaseConfig = {
-      databaseURL: "https://shopee-da43f-default-rtdb.firebaseio.com"
-    };
+    const MAX_ATTEMPTS = 3;
+    const LOCK_MINUTES = 15;
+    const PASS_TOKEN = "eXZlc181MjA0OTBfc2VjcmV0";
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
-    const db = firebase.database();
+    window.addEventListener('DOMContentLoaded', checkLockStatus);
 
-    function fetchProducts() {
-      db.ref('yves_shop_data/products').once('value', (snapshot) => {
-        const data = snapshot.val();
-        const tbody = document.getElementById('admin-table-body');
-        tbody.innerHTML = '';
+    function checkLockStatus() {
+      const lockUntil = localStorage.getItem('yves_admin_lock_until');
+      const securityWarn = document.getElementById('security-warning');
+      const loginBtn = document.getElementById('btn-login');
+      const pinInput = document.getElementById('pin-input');
 
-        if (!data) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted">目前資料庫無商品資料</td></tr>';
-          return;
+      if (lockUntil) {
+        const now = new Date().getTime();
+        const remainingMs = Number(lockUntil) - now;
+
+        if (remainingMs > 0) {
+          const remainingMins = Math.ceil(remainingMs / (1000 * 60));
+          securityWarn.innerText = `🚨 失敗次數過多！系統鎖定中（剩餘約 ${remainingMins} 分鐘）`;
+          securityWarn.className = "text-xs font-bold text-red-600";
+          loginBtn.disabled = true;
+          loginBtn.classList.add('opacity-50', 'cursor-not-allowed');
+          pinInput.disabled = true;
+          return true;
+        } else {
+          localStorage.removeItem('yves_admin_lock_until');
+          localStorage.removeItem('yves_admin_attempts');
         }
+      }
 
-        const entries = Array.isArray(data) ? data.map((item, idx) => [idx, item]) : Object.entries(data);
-
-        entries.forEach(([key, product]) => {
-          if (!product) return;
-          const trHtml = `
-            <tr>
-              <td><img src="${product.image || 'https://via.placeholder.com/50'}" class="table-img"></td>
-              <td><strong class="d-inline-block text-truncate" style="max-width: 200px;">${product.name}</strong></td>
-              <td class="text-danger fw-bold">NT$ ${product.promoPrice || 0}</td>
-              <td><span class="badge bg-info text-dark fs-6">📊 ${product.clicks || 0} 次</span></td>
-              <td><a href="${product.link}" target="_blank" class="btn btn-outline-secondary btn-sm">查看</a></td>
-              <td>
-                <button class="btn btn-danger btn-sm" onclick="deleteProduct('${key}')">刪除</button>
-              </td>
-            </tr>
-          `;
-          tbody.innerHTML += trHtml;
-        });
-      });
+      const attempts = Number(localStorage.getItem('yves_admin_attempts') || 0);
+      const remaining = MAX_ATTEMPTS - attempts;
+      securityWarn.innerText = `請輸入管理員 PIN 碼（剩餘 ${remaining} 次嘗試機會）`;
+      securityWarn.className = "text-xs text-gray-500";
+      loginBtn.disabled = false;
+      loginBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      pinInput.disabled = false;
+      return false;
     }
 
-    function deleteProduct(key) {
-      if (confirm('確定要刪除這項商品嗎？')) {
-        db.ref('yves_shop_data/products/' + key).remove().then(() => {
-          alert('已刪除！');
-          fetchProducts();
-        });
+    function verifyPIN() {
+      if (checkLockStatus()) return;
+
+      const rawInput = document.getElementById('pin-input').value.trim();
+      if (!rawInput) {
+        alert('請輸入密碼！');
+        return;
+      }
+
+      const inputToken = btoa(encodeURIComponent('yves_' + rawInput + '_secret'));
+
+      if (inputToken === PASS_TOKEN) {
+        localStorage.removeItem('yves_admin_attempts');
+        localStorage.removeItem('yves_admin_lock_until');
+        sessionStorage.setItem('yves_admin_authenticated', 'true');
+        document.getElementById('pin-modal').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+        document.getElementById('pin-input').value = '';
+        initRealtimeSync();
+      } else {
+        let attempts = Number(localStorage.getItem('yves_admin_attempts') || 0) + 1;
+        localStorage.setItem('yves_admin_attempts', attempts);
+
+        if (attempts >= MAX_ATTEMPTS) {
+          const lockTime = new Date().getTime() + (LOCK_MINUTES * 60 * 1000);
+          localStorage.setItem('yves_admin_lock_until', lockTime);
+          checkLockStatus();
+          alert(`❌ 密碼連續錯誤 ${MAX_ATTEMPTS} 次！系統已啟動安全鎖定 ${LOCK_MINUTES} 分鐘。`);
+        } else {
+          checkLockStatus();
+          document.getElementById('pin-input').value = '';
+          document.getElementById('pin-input').focus();
+          alert(`❌ 密碼錯誤！還剩 ${MAX_ATTEMPTS - attempts} 次機會。`);
+        }
       }
     }
 
-    fetchProducts();
+    function lockAdminConsole() {
+      sessionStorage.removeItem('yves_admin_authenticated');
+      document.getElementById('admin-content').classList.add('hidden');
+      document.getElementById('pin-modal').classList.remove('hidden');
+      checkLockStatus();
+    }
+
+    function showForgotPasswordModal() { document.getElementById('forgot-modal').classList.remove('hidden'); }
+    function closeForgotPasswordModal() { document.getElementById('forgot-modal').classList.add('hidden'); }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBcI0OjXhHwOMsr_HhubzfLlVf_9wVcERI",
+      authDomain: "shopee-da43f.firebaseapp.com",
+      databaseURL: "https://shopee-da43f-default-rtdb.firebaseio.com",
+      projectId: "shopee-da43f",
+      storageBucket: "shopee-da43f.firebasestorage.app",
+      messagingSenderId: "669756265345",
+      appId: "1:669756265345:web:b55f67923b1b81687f0e80",
+      measurementId: "G-Z8SZ67GGTC"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let productsList = [];
+    let codesList = [];
+
+    function initRealtimeSync() {
+      db.ref('yves_shop_data').on('value', (snapshot) => {
+        const val = snapshot.val();
+        if (val) {
+          productsList = val.products || [];
+          codesList = val.codes || [];
+        } else {
+          productsList = [];
+          codesList = [];
+        }
+        renderAdminUI();
+      });
+    }
+
+    function getNowFormatted() {
+      const now = new Date();
+      return `${now.getFullYear()}/${String(now.getMonth() + 1).padStart(2, '0')}/${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+
+    function pushToFirebase() {
+      db.ref('yves_shop_data').set({
+        products: productsList,
+        codes: codesList,
+        lastUpdated: getNowFormatted()
+      });
+    }
+
+    function sendDiscordWebhook(webhookUrl, product) {
+      if (!webhookUrl) return;
+      const content = {
+        embeds: [{
+          title: `🔥【Yves 嚴選特惠】${product.name}`,
+          url: product.link,
+          color: product.platform === 'SHOPEE' ? 16737792 : 255,
+          fields: [
+            { name: "💰 特惠價", value: `**NT$ ${product.promoPrice}** (原價 $${product.originalPrice})`, inline: true },
+            { name: "🏷️ 平台", value: product.platform, inline: true },
+            { name: "🎟️ 優惠碼", value: product.code || "無", inline: true }
+          ],
+          image: { url: product.image },
+          footer: { text: "Yves 嚴選特惠 - 導購連結與優惠即時更新" }
+        }]
+      };
+      fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(content)
+      }).catch(err => console.error(err));
+    }
+
+    function switchTab(tab) {
+      document.getElementById('panel-products').classList.toggle('hidden', tab !== 'products');
+      document.getElementById('panel-codes').classList.toggle('hidden', tab !== 'codes');
+    }
+
+    function renderAdminUI() {
+      const searchKey = (document.getElementById('admin-search-input')?.value || '').toLowerCase().trim();
+      const pContainer = document.getElementById('products-container');
+
+      const filtered = productsList.filter(p => p.name.toLowerCase().includes(searchKey) || p.category.toLowerCase().includes(searchKey));
+
+      if (filtered.length === 0) {
+        pContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">沒有找到符合條件的商品</div>`;
+      } else {
+        pContainer.innerHTML = filtered.map((p) => {
+          const idx = productsList.findIndex(x => x.id === p.id);
+          const isShopee = p.platform === 'SHOPEE';
+          return `
+            <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div class="flex items-center gap-3 w-full sm:w-auto">
+                <img src="${p.image}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-lg object-cover flex-shrink-0 bg-gray-100">
+                <div class="flex-grow min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${isShopee ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${isShopee ? '蝦皮' : '酷澎'}</span>
+                    <span class="text-[10px] text-gray-400">${p.category || '未分類'}</span>
+                    <span class="text-[10px] text-orange-600 font-black bg-orange-50 px-1 py-0.5 rounded"><i class="fa-solid fa-fire text-[9px]"></i> ${p.clicks || 0} 次點擊</span>
+                  </div>
+                  <h3 class="font-bold text-xs sm:text-sm text-gray-800 truncate mt-0.5">${p.name}</h3>
+                  <p class="text-xs font-black text-red-600 mt-0.5">NT$ ${p.promoPrice} <span class="text-gray-400 font-normal line-through text-[10px]">NT$ ${p.originalPrice}</span></p>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between sm:justify-end gap-1.5 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-0 border-gray-100">
+                <div class="flex items-center bg-gray-50 rounded-lg p-0.5">
+                  <button onclick="pinProduct(${idx})" class="px-2 py-1.5 text-gray-400 hover:text-orange-500 text-xs" title="一鍵置頂"><i class="fa-solid fa-thumbtack"></i></button>
+                  <button onclick="moveProduct(${idx}, -1)" class="px-2 py-1.5 text-gray-400 hover:text-blue-500 text-xs" ${idx === 0 ? 'disabled class="opacity-30"' : ''}><i class="fa-solid fa-arrow-up"></i></button>
+                  <button onclick="moveProduct(${idx}, 1)" class="px-2 py-1.5 text-gray-400 hover:text-blue-500 text-xs" ${idx === productsList.length - 1 ? 'disabled class="opacity-30"' : ''}><i class="fa-solid fa-arrow-down"></i></button>
+                </div>
+                
+                <div class="flex items-center gap-1.5">
+                  <button onclick="generateCopy(${idx})" class="px-2.5 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-xs active:bg-orange-200"><i class="fa-regular fa-copy"></i> 文案</button>
+                  <button onclick="editProduct(${p.id})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+                  <button onclick="deleteProduct(${p.id})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const cContainer = document.getElementById('codes-container');
+      if (codesList.length === 0) {
+        cContainer.innerHTML = `<div class="bg-white rounded-xl p-8 text-center text-gray-400 font-bold border border-gray-100">目前尚無任何優惠券</div>`;
+      } else {
+        cContainer.innerHTML = codesList.map(c => `
+          <div class="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-100 flex items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono font-black text-xs sm:text-sm text-gray-900">${c.code}</span>
+                <span class="px-1.5 py-0.5 rounded text-[9px] font-black ${c.platform === 'SHOPEE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${c.platform}</span>
+              </div>
+              <p class="text-xs text-gray-600 mt-1">${c.desc}</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="toggleCodeStatus(${c.id})" class="px-2.5 py-1 rounded-lg text-xs font-bold ${c.active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}">${c.active ? '啟用中' : '已停用'}</button>
+              <button onclick="editCode(${c.id})" class="p-1.5 text-blue-500"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteCode(${c.id})" class="p-1.5 text-red-500"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function pinProduct(index) {
+      if (index === 0) return;
+      const target = productsList.splice(index, 1)[0];
+      productsList.unshift(target);
+      pushToFirebase();
+    }
+
+    function moveProduct(index, direction) {
+      const newIndex = index + direction;
+      if (newIndex < 0 || newIndex >= productsList.length) return;
+      const temp = productsList[index];
+      productsList[index] = productsList[newIndex];
+      productsList[newIndex] = temp;
+      pushToFirebase();
+    }
+
+    function generateCopy(index) {
+      const p = productsList[index];
+      if (!p) return;
+      const discount = Math.round((1 - p.promoPrice / (p.originalPrice || 1)) * 100);
+      const text = `🔥【Yves 嚴選好康】${p.name}\n\n` +
+                   `💰 限時特惠價：NT$ ${p.promoPrice} (原價 $${p.originalPrice}，直降 ${discount}% OFF！)\n` +
+                   (p.code ? `🎟️ 獨家優惠碼：${p.code}\n` : '') +
+                   `\n👉 市價最便宜購買連結：\n${p.link}\n\n` +
+                   `#Yves嚴選特惠 #${p.platform === 'SHOPEE' ? '蝦皮優惠' : '酷澎特價'} #限時好康`;
+      
+      document.getElementById('copy-text').value = text;
+      document.getElementById('copy-modal').classList.remove('hidden');
+    }
+
+    function closeCopyModal() { document.getElementById('copy-modal').classList.add('hidden'); }
+    function copyGeneratedText() {
+      navigator.clipboard.writeText(document.getElementById('copy-text').value);
+      alert('✅ 已複製導購宣傳文案！');
+      closeCopyModal();
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ products: productsList, codes: codesList, lastUpdated: getNowFormatted() }, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `yves_shop_backup_${Date.now()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (confirm('確定要將備份 JSON 覆蓋目前的雲端資料庫嗎？')) {
+            productsList = importedData.products || [];
+            codesList = importedData.codes || [];
+            pushToFirebase();
+            alert('✅ 匯入成功！');
+          }
+        } catch (err) { alert('❌ JSON 格式不正確！'); }
+      };
+      reader.readAsText(file);
+    }
+
+    function openProductModal() {
+      document.getElementById('pm-id').value = '';
+      document.getElementById('pm-name').value = '';
+      document.getElementById('pm-platform').value = 'SHOPEE';
+      document.getElementById('pm-category').value = '';
+      document.getElementById('pm-badge').value = 'NONE';
+      document.getElementById('pm-expiry').value = '';
+      document.getElementById('pm-orig').value = '';
+      document.getElementById('pm-promo').value = '';
+      document.getElementById('pm-image').value = '';
+      document.getElementById('pm-link').value = '';
+      document.getElementById('pm-code').value = '';
+      document.getElementById('pm-webhook').value = '';
+      document.getElementById('product-modal').classList.remove('hidden');
+    }
+
+    function editProduct(id) {
+      const p = productsList.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('pm-id').value = p.id;
+      document.getElementById('pm-name').value = p.name;
+      document.getElementById('pm-platform').value = p.platform;
+      document.getElementById('pm-category').value = p.category;
+      document.getElementById('pm-badge').value = p.badge || 'NONE';
+      document.getElementById('pm-expiry').value = p.expiry || '';
+      document.getElementById('pm-orig').value = p.originalPrice;
+      document.getElementById('pm-promo').value = p.promoPrice;
+      document.getElementById('pm-image').value = p.image;
+      document.getElementById('pm-link').value = p.link;
+      document.getElementById('pm-code').value = p.code || '';
+      document.getElementById('product-modal').classList.remove('hidden');
+    }
+
+    function closeProductModal() { document.getElementById('product-modal').classList.add('hidden'); }
+    
+    function saveProduct() {
+      if (!confirm('確定儲存並更新至雲端？')) return;
+
+      const editId = document.getElementById('pm-id').value;
+      const productData = {
+        id: editId ? Number(editId) : Date.now(),
+        name: document.getElementById('pm-name').value || '未命名商品',
+        platform: document.getElementById('pm-platform').value,
+        category: document.getElementById('pm-category').value || '未分類',
+        badge: document.getElementById('pm-badge').value,
+        expiry: document.getElementById('pm-expiry').value,
+        originalPrice: Number(document.getElementById('pm-orig').value) || 0,
+        promoPrice: Number(document.getElementById('pm-promo').value) || 0,
+        image: document.getElementById('pm-image').value || 'https://images.unsplash.com/photo-1560343090-f0409e92791a?auto=format&fit=crop&w=600&q=80',
+        link: document.getElementById('pm-link').value || 'https://shopee.tw',
+        code: document.getElementById('pm-code').value,
+        clicks: editId ? (productsList.find(x => x.id === Number(editId))?.clicks || 0) : 0
+      };
+
+      const webhookUrl = document.getElementById('pm-webhook').value.trim();
+      if (webhookUrl) {
+        sendDiscordWebhook(webhookUrl, productData);
+      }
+
+      if (editId) {
+        const idx = productsList.findIndex(x => x.id === Number(editId));
+        if (idx !== -1) productsList[idx] = productData;
+      } else {
+        productsList.unshift(productData);
+      }
+
+      pushToFirebase();
+      closeProductModal();
+    }
+
+    function deleteProduct(id) {
+      if (confirm('確定刪除商品？')) {
+        productsList = productsList.filter(p => p.id !== id);
+        pushToFirebase();
+      }
+    }
+
+    function clearAllProducts() {
+      if (confirm('⚠️ 確定清空所有商品？')) {
+        productsList = [];
+        pushToFirebase();
+      }
+    }
+
+    function openCodeModal() { 
+      document.getElementById('cm-title').innerText = '新增優惠券';
+      document.getElementById('cm-id').value = '';
+      document.getElementById('cm-code').value = '';
+      document.getElementById('cm-platform').value = 'SHOPEE';
+      document.getElementById('cm-desc').value = '';
+      document.getElementById('cm-link').value = '';
+      document.getElementById('cm-expiry').value = '';
+      document.getElementById('code-modal').classList.remove('hidden'); 
+    }
+
+    function editCode(id) {
+      const c = codesList.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('cm-title').innerText = '編輯優惠券';
+      document.getElementById('cm-id').value = c.id;
+      document.getElementById('cm-code').value = c.code;
+      document.getElementById('cm-platform').value = c.platform;
+      document.getElementById('cm-desc').value = c.desc;
+      document.getElementById('cm-link').value = c.link || '';
+      document.getElementById('cm-expiry').value = c.expiry || '';
+      document.getElementById('code-modal').classList.remove('hidden');
+    }
+
+    function closeCodeModal() { document.getElementById('code-modal').classList.add('hidden'); }
+    
+    function saveCode() {
+      if (!confirm('確定儲存優惠券？')) return;
+
+      const editId = document.getElementById('cm-id').value;
+      const codeData = {
+        id: editId ? Number(editId) : Date.now(),
+        code: document.getElementById('cm-code').value.toUpperCase(),
+        platform: document.getElementById('cm-platform').value,
+        desc: document.getElementById('cm-desc').value || '全館優惠',
+        link: document.getElementById('cm-link').value || '',
+        expiry: document.getElementById('cm-expiry').value || '',
+        active: editId ? (codesList.find(x => x.id === Number(editId))?.active ?? true) : true
+      };
+
+      if (editId) {
+        const idx = codesList.findIndex(x => x.id === Number(editId));
+        if (idx !== -1) codesList[idx] = codeData;
+      } else {
+        codesList.unshift(codeData);
+      }
+
+      pushToFirebase();
+      closeCodeModal();
+    }
+
+    function toggleCodeStatus(id) {
+      const c = codesList.find(x => x.id === id);
+      if (c) {
+        c.active = !c.active;
+        pushToFirebase();
+      }
+    }
+
+    function deleteCode(id) {
+      if (confirm('確定刪除優惠券？')) {
+        codesList = codesList.filter(c => c.id !== id);
+        pushToFirebase();
+      }
+    }
+
+    function clearAllCodes() {
+      if (confirm('⚠️ 確定清空所有優惠券？')) {
+        codesList = [];
+        pushToFirebase();
+      }
+    }
   </script>
 </body>
 </html>
