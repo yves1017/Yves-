@@ -7,8 +7,8 @@ from firebase_admin import credentials, db
 
 FIREBASE_DATABASE_URL = "https://shopee-da43f-default-rtdb.firebaseio.com"
 
-# 初始化 Firebase Admin SDK
 def init_firebase():
+    """使用 Admin SDK 憑證初始化 Firebase"""
     if not firebase_admin._apps:
         service_account_info = os.getenv("FIREBASE_SERVICE_ACCOUNT")
         if service_account_info:
@@ -18,9 +18,10 @@ def init_firebase():
                 'databaseURL': FIREBASE_DATABASE_URL
             })
         else:
-            print("⚠️ 未檢測到 FIREBASE_SERVICE_ACCOUNT 環境變數")
+            print("⚠️ 未檢測到 FIREBASE_SERVICE_ACCOUNT 環境變數，請檢查 GitHub Secrets 設定")
 
 def fetch_shopee_deals():
+    """爬取蝦皮熱門商品真實資料與個別商品專屬網址"""
     timestamp = int(time.time())
     readable_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
     
@@ -51,6 +52,7 @@ def fetch_shopee_deals():
                 if not item_id or not shop_id or not name:
                     continue
                 
+                # 價格轉換 (蝦皮 API 價格單位需除以 100000)
                 price_raw = item.get("price", 0)
                 price_before_raw = item.get("price_before_discount", price_raw)
                 
@@ -59,8 +61,11 @@ def fetch_shopee_deals():
                 if original_price < promo_price or original_price == 0:
                     original_price = promo_price
                 
+                # 商品圖片 URL 還原
                 image_hash = item.get("image", "")
                 image_url = f"https://down-tw.img.susercontent.com/file/{image_hash}" if image_hash else "https://via.placeholder.com/600"
+                
+                # 特定商品專屬獨立網址
                 raw_product_link = f"https://shopee.tw/product/{shop_id}/{item_id}"
                 
                 fetched_products.append({
@@ -72,13 +77,17 @@ def fetch_shopee_deals():
                     "originalPrice": original_price,
                     "promoPrice": promo_price,
                     "image": image_url,
-                    "link": raw_product_link,
+                    "link": raw_product_link, # 帶入專屬商品網址
                     "code": "",
                     "clicks": 0
                 })
+            print(f"✅ 成功抓取到 {len(fetched_products)} 項真實熱銷商品！")
+        else:
+            print(f"⚠️ 蝦皮 API 回應異常，狀態碼：{res.status_code}")
     except Exception as e:
         print(f"🚨 抓取過程發生異常：{e}")
 
+    # 備用真實格式（當請求受阻時）
     if not fetched_products:
         fetched_products = [
             {
@@ -99,6 +108,7 @@ def fetch_shopee_deals():
     return fetched_products
 
 def update_firebase_sdk(products):
+    """透過 Firebase Admin SDK 更新資料庫"""
     try:
         init_firebase()
         ref = db.reference("yves_shop_data/products")
@@ -116,9 +126,9 @@ def update_firebase_sdk(products):
                 new_added += 1
 
         ref.set(current_products)
-        print(f"✅ [Firebase Admin SDK] 成功寫入 Firebase！新增了 {new_added} 項商品。")
+        print(f"✅ [Firebase Admin SDK] 成功同步至 Firebase！共新增了 {new_added} 項商品。")
     except Exception as e:
-        print(f"🚨 [Firebase Admin SDK] 寫入發生異常：{e}")
+        print(f"🚨 [Firebase Admin SDK] 寫入資料庫失敗：{e}")
 
 if __name__ == "__main__":
     deals = fetch_shopee_deals()
