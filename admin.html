@@ -12,7 +12,6 @@
 
   <style>
     :root {
-      --primary-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
       --sidebar-bg: #0f172a;
       --card-border-radius: 14px;
       --main-bg: #f8fafc;
@@ -25,15 +24,15 @@
       min-height: 100vh;
     }
 
-    /* 密碼遮罩鎖層 */
+    /* 全螢幕身分驗證遮罩鎖 */
     #auth-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(15, 23, 42, 0.95);
-      z-index: 9999;
+      background: rgba(15, 23, 42, 0.98);
+      z-index: 999999;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -92,16 +91,16 @@
       flex-shrink: 0;
     }
 
-    /* 文字完整顯示（移除裁切設定） */
+    /* 文字完全顯示，決不裁切加省略號 */
     .full-text-display {
       word-break: break-word;
       white-space: normal;
       overflow: visible !important;
       text-overflow: clip !important;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
-    /* 主要卡片與區塊 */
+    /* 主要面板卡片 */
     .panel-card {
       border: none;
       border-radius: var(--card-border-radius);
@@ -118,7 +117,7 @@
       border-top-right-radius: var(--card-border-radius);
     }
 
-    /* 表格樣式優化 */
+    /* 自訂表格樣式 */
     .custom-table th {
       background-color: #f8fafc;
       color: #64748b;
@@ -154,19 +153,34 @@
       border: 1px solid #dbeafe;
     }
 
-    .nav-tabs .nav-link {
+    .badge-platform {
+      background-color: #fff7ed;
+      color: #ea580c;
+      border: 1px solid #ffedd5;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .nav-btn {
       color: #94a3b8;
       font-weight: 600;
       border: none;
-      padding: 0.75rem 1.25rem;
-      border-bottom: 3px solid transparent;
-      cursor: pointer;
+      background: transparent;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      transition: all 0.2s ease;
     }
 
-    .nav-tabs .nav-link.active {
-      color: #60a5fa !important;
-      background: transparent;
-      border-bottom-color: #3b82f6 !important;
+    .nav-btn.active {
+      color: #ffffff !important;
+      background-color: #3b82f6 !important;
+    }
+
+    .nav-btn:hover:not(.active) {
+      color: #cbd5e1;
+      background-color: rgba(255, 255, 255, 0.05);
     }
 
     footer {
@@ -179,19 +193,19 @@
 </head>
 <body class="d-flex flex-column">
 
-  <!-- 1. 後台密碼驗證遮罩鎖 -->
+  <!-- 1. 後台身分驗證解鎖遮罩 -->
   <div id="auth-overlay">
     <div class="card p-4 shadow-lg border-0" style="max-width: 400px; width: 90%; border-radius: 16px;">
       <div class="text-center mb-3">
         <i class="fa-solid fa-lock text-primary fs-1 mb-2"></i>
-        <h4 class="fw-bold">後台身分驗證</h4>
-        <p class="text-muted fs-7">請輸入管理員密碼以進入系統</p>
+        <h4 class="fw-bold">身分驗證鎖</h4>
+        <p class="text-muted fs-7">請輸入管理員密碼以進入系統 (預設: admin123)</p>
       </div>
       <form onsubmit="verifyAdminPassword(event)">
         <div class="mb-3">
           <input type="password" id="admin-pass-input" class="form-control form-control-lg text-center" placeholder="請輸入密碼" required autofocus>
         </div>
-        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">解鎖進入後台</button>
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold fs-6">解鎖進入後台</button>
       </form>
     </div>
   </div>
@@ -203,46 +217,35 @@
         <i class="fa-solid fa-store me-2 text-primary fs-4"></i>
         <span class="brand-title">Yves 嚴選特惠後台</span>
       </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarAdmin">
-        <span class="navbar-toggler-icon"></span>
-      </button>
 
-      <div class="collapse navbar-collapse" id="navbarAdmin">
-        <!-- 頁籤按鈕 (已修正 Bootstrap 5 data-bs-toggle) -->
-        <ul class="nav nav-tabs border-0 me-auto mb-2 mb-lg-0" id="adminTabs" role="tablist">
-          <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="tab-manage" data-bs-toggle="tab" data-bs-target="#pane-manage" type="button" role="tab">
-              <i class="fa-solid fa-boxes-packing me-1"></i> 商品管理
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tab-add" data-bs-toggle="tab" data-bs-target="#pane-add" type="button" role="tab">
-              <i class="fa-solid fa-plus-circle me-1"></i> 手動上架
-            </button>
-          </li>
-          <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tab-logs" data-bs-toggle="tab" data-bs-target="#pane-logs" type="button" role="tab">
-              <i class="fa-solid fa-clock-rotate-left me-1"></i> 操作日誌
-            </button>
-          </li>
-        </ul>
+      <!-- 原生切換按鈕，防範腳本失效 -->
+      <div class="d-flex align-items-center me-auto gap-2">
+        <button class="nav-btn active" id="btn-tab-manage" onclick="switchTab('pane-manage', 'btn-tab-manage')">
+          <i class="fa-solid fa-boxes-packing me-1"></i> 商品管理
+        </button>
+        <button class="nav-btn" id="btn-tab-add" onclick="switchTab('pane-add', 'btn-tab-add')">
+          <i class="fa-solid fa-plus-circle me-1"></i> 手動上架
+        </button>
+        <button class="nav-btn" id="btn-tab-logs" onclick="switchTab('pane-logs', 'btn-tab-logs')">
+          <i class="fa-solid fa-clock-rotate-left me-1"></i> 操作日誌
+        </button>
+      </div>
 
-        <div class="d-flex align-items-center gap-3">
-          <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2 rounded-pill">
-            <i class="fa-solid fa-shield-halved me-1"></i> Admin SDK 模式
-          </span>
-          <button class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="refreshDatabaseData()">
-            <i class="fa-solid fa-rotate me-1"></i> 手動重新整理
-          </button>
-        </div>
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2 rounded-pill">
+          <i class="fa-solid fa-shield-halved me-1"></i> Admin SDK 模式
+        </span>
+        <button class="btn btn-outline-light btn-sm rounded-pill px-3" onclick="refreshDatabaseData()">
+          <i class="fa-solid fa-rotate me-1"></i> 手動重新整理
+        </button>
       </div>
     </div>
   </nav>
 
-  <!-- 主體區域 -->
+  <!-- 主要內容區域 -->
   <div class="container-fluid px-4 py-4 flex-grow-1">
 
-    <!-- 頂部四項數據指標 -->
+    <!-- 頂部四項核心數據卡片 -->
     <div class="row g-3 mb-4">
       <div class="col-12 col-sm-6 col-xl-3">
         <div class="metric-card primary p-3">
@@ -272,13 +275,13 @@
         </div>
       </div>
 
-      <!-- 文字完全顯示無截斷 -->
+      <!-- 點擊冠軍（文字完整顯示） -->
       <div class="col-12 col-sm-6 col-xl-3">
         <div class="metric-card warning p-3">
           <div class="d-flex align-items-center justify-content-between gap-2">
             <div style="flex-grow: 1;">
               <p class="text-muted mb-1 fw-bold fs-7">點擊冠軍商品</p>
-              <h6 id="metric-top-item" class="fw-bold mb-0 text-dark full-text-display">尚無數據</h6>
+              <div id="metric-top-item" class="fw-bold text-dark full-text-display">尚無數據</div>
             </div>
             <div class="metric-icon-box bg-warning bg-opacity-10 text-warning">
               <i class="fa-solid fa-trophy"></i>
@@ -302,133 +305,136 @@
       </div>
     </div>
 
-    <!-- 分頁內容區 -->
-    <div class="tab-content" id="adminTabContent">
+    <!-- 頁籤 1：商品管理清單 -->
+    <div id="pane-manage" class="tab-content-panel">
+      <div class="panel-card">
+        <div class="panel-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div class="d-flex align-items-center gap-2">
+            <h5 class="mb-0 fw-bold"><i class="fa-solid fa-table-list text-primary me-2"></i>即時商品庫存與導向連結</h5>
+            <span class="badge bg-secondary rounded-pill" id="item-count-badge">0 項</span>
+          </div>
 
-      <!-- 分頁一：商品清單 -->
-      <div class="tab-pane fade show active" id="pane-manage" role="tabpanel">
-        <div class="panel-card">
-          <div class="panel-header d-flex flex-wrap align-items-center justify-content-between gap-3">
-            <div class="d-flex align-items-center gap-2">
-              <h5 class="mb-0 fw-bold"><i class="fa-solid fa-table-list text-primary me-2"></i>即時商品清單</h5>
-              <span class="badge bg-secondary rounded-pill" id="item-count-badge">0 項</span>
+          <div class="d-flex flex-wrap align-items-center gap-2">
+            <div class="input-group input-group-sm" style="width: 220px;">
+              <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+              <input type="text" id="search-input" class="form-control border-start-0" placeholder="搜尋商品名稱..." onkeyup="filterProducts()">
             </div>
 
-            <div class="d-flex flex-wrap align-items-center gap-2">
-              <div class="input-group input-group-sm" style="width: 220px;">
-                <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-                <input type="text" id="search-input" class="form-control border-start-0" placeholder="搜尋商品名稱..." onkeyup="filterProducts()">
+            <select id="category-filter" class="form-select form-select-sm" style="width: 120px;" onchange="filterProducts()">
+              <option value="ALL">所有分類</option>
+              <option value="熱門爆款">熱門爆款</option>
+              <option value="包包服飾">包包服飾</option>
+              <option value="3C數位">3C數位</option>
+              <option value="生活用品">生活用品</option>
+            </select>
+
+            <button class="btn btn-outline-danger btn-sm" onclick="batchResetClicks()">
+              <i class="fa-solid fa-rotate-left me-1"></i> 重置點擊
+            </button>
+            <button class="btn btn-outline-success btn-sm" onclick="exportToCSV()">
+              <i class="fa-solid fa-file-csv me-1"></i> 匯出 CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table custom-table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="ps-4" style="width: 60px;">序號</th>
+                <th style="width: 80px;">縮圖</th>
+                <th>商品名稱 / 分類</th>
+                <th style="width: 120px;">原價 / 特價</th>
+                <th style="width: 130px;">📊 累積點擊</th>
+                <th>蝦皮分潤導向網址</th>
+                <th class="text-end pe-4" style="width: 160px;">管理操作</th>
+              </tr>
+            </thead>
+            <tbody id="product-table-body">
+              <tr>
+                <td colspan="7" class="text-center py-5 text-muted">
+                  請先輸入管理員密碼解鎖以讀取 Firebase 資料庫...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 頁籤 2：手動上架表單 -->
+    <div id="pane-add" class="tab-content-panel d-none">
+      <div class="panel-card mx-auto" style="max-width: 750px;">
+        <div class="panel-header">
+          <h5 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-plus-circle me-2"></i>手動新增商品至 Firebase</h5>
+        </div>
+        <div class="card-body p-4">
+          <form id="add-product-form" onsubmit="handleManualAddProduct(event)">
+            <div class="row g-3">
+              <div class="col-12">
+                <label for="new-name" class="form-label fw-bold">商品名稱 *</label>
+                <input type="text" class="form-control" id="new-name" placeholder="請輸入商品名稱" required>
               </div>
 
-              <select id="category-filter" class="form-select form-select-sm" style="width: 120px;" onchange="filterProducts()">
-                <option value="ALL">所有分類</option>
-                <option value="熱門爆款">熱門爆款</option>
-                <option value="包包服飾">包包服飾</option>
-                <option value="3C數位">3C數位</option>
-                <option value="生活用品">生活用品</option>
-              </select>
-
-              <button class="btn btn-outline-danger btn-sm" onclick="batchResetClicks()">
-                <i class="fa-solid fa-rotate-left me-1"></i> 重置點擊
-              </button>
-              <button class="btn btn-outline-success btn-sm" onclick="exportToCSV()">
-                <i class="fa-solid fa-file-csv me-1"></i> 匯出 CSV
-              </button>
-            </div>
-          </div>
-
-          <div class="table-responsive">
-            <table class="table custom-table table-hover align-middle mb-0">
-              <thead>
-                <tr>
-                  <th class="ps-4" style="width: 60px;">序號</th>
-                  <th style="width: 80px;">縮圖</th>
-                  <th>商品名稱</th>
-                  <th style="width: 120px;">價格</th>
-                  <th style="width: 130px;">📊 累積點擊</th>
-                  <th>導向網址</th>
-                  <th class="text-end pe-4" style="width: 160px;">管理操作</th>
-                </tr>
-              </thead>
-              <tbody id="product-table-body">
-                <tr>
-                  <td colspan="7" class="text-center py-5 text-muted">
-                    <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                    載入 Firebase 資料庫中...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- 分頁二：手動上架 -->
-      <div class="tab-pane fade" id="pane-add" role="tabpanel">
-        <div class="panel-card mx-auto" style="max-width: 750px;">
-          <div class="panel-header">
-            <h5 class="mb-0 fw-bold text-primary"><i class="fa-solid fa-plus-circle me-2"></i>手動新增商品至 Firebase</h5>
-          </div>
-          <div class="card-body p-4">
-            <form id="add-product-form" onsubmit="handleManualAddProduct(event)">
-              <div class="row g-3">
-                <div class="col-12">
-                  <label for="new-name" class="form-label fw-bold">商品名稱 *</label>
-                  <input type="text" class="form-control" id="new-name" placeholder="請輸入商品品名" required>
-                </div>
-                <div class="col-md-6">
-                  <label for="new-category" class="form-label fw-bold">商品分類</label>
-                  <select class="form-select" id="new-category">
-                    <option value="熱門爆款" selected>熱門爆款</option>
-                    <option value="包包服飾">包包服飾</option>
-                    <option value="3C數位">3C數位</option>
-                    <option value="生活用品">生活用品</option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label for="new-badge" class="form-label fw-bold">角標文字</label>
-                  <input type="text" class="form-control" id="new-badge" value="HOT">
-                </div>
-                <div class="col-md-6">
-                  <label for="new-orig-price" class="form-label fw-bold">原價 (NT$)</label>
-                  <input type="number" class="form-control" id="new-orig-price" placeholder="599">
-                </div>
-                <div class="col-md-6">
-                  <label for="new-promo-price" class="form-label fw-bold">特惠價 (NT$) *</label>
-                  <input type="number" class="form-control" id="new-promo-price" placeholder="299" required>
-                </div>
-                <div class="col-12">
-                  <label for="new-image" class="form-label fw-bold">圖片網址 (Image URL) *</label>
-                  <input type="url" class="form-control" id="new-image" placeholder="https://..." required>
-                </div>
-                <div class="col-12">
-                  <label for="new-link" class="form-label fw-bold">分潤短網址 (Affiliate Link) *</label>
-                  <input type="url" class="form-control" id="new-link" placeholder="https://s.shopee.tw/..." required>
-                </div>
-                <div class="col-12 pt-3">
-                  <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">寫入 Firebase 資料庫</button>
-                </div>
+              <div class="col-md-6">
+                <label for="new-category" class="form-label fw-bold">商品分類</label>
+                <select class="form-select" id="new-category">
+                  <option value="熱門爆款" selected>熱門爆款</option>
+                  <option value="包包服飾">包包服飾</option>
+                  <option value="3C數位">3C數位</option>
+                  <option value="生活用品">生活用品</option>
+                </select>
               </div>
-            </form>
-          </div>
-        </div>
-      </div>
 
-      <!-- 分頁三：操作日誌 -->
-      <div class="tab-pane fade" id="pane-logs" role="tabpanel">
-        <div class="panel-card">
-          <div class="panel-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="fa-solid fa-list-ol me-2 text-primary"></i>系統即時 Log 紀錄</h5>
-            <button class="btn btn-outline-secondary btn-sm" onclick="clearLogConsole()">清空紀錄</button>
-          </div>
-          <div class="card-body">
-            <div id="log-console" class="bg-dark text-light p-3 rounded-3 font-monospace fs-7" style="height: 350px; overflow-y: auto;">
-              <p class="text-muted mb-1">[SYSTEM] 後台初始化完成...</p>
+              <div class="col-md-6">
+                <label for="new-badge" class="form-label fw-bold">角標文字</label>
+                <input type="text" class="form-control" id="new-badge" value="HOT">
+              </div>
+
+              <div class="col-md-6">
+                <label for="new-orig-price" class="form-label fw-bold">原價 (NT$)</label>
+                <input type="number" class="form-control" id="new-orig-price" placeholder="599">
+              </div>
+
+              <div class="col-md-6">
+                <label for="new-promo-price" class="form-label fw-bold">特惠價 (NT$) *</label>
+                <input type="number" class="form-control" id="new-promo-price" placeholder="299" required>
+              </div>
+
+              <div class="col-12">
+                <label for="new-image" class="form-label fw-bold">圖片網址 (Image URL) *</label>
+                <input type="url" class="form-control" id="new-image" placeholder="https://..." required>
+              </div>
+
+              <div class="col-12">
+                <label for="new-link" class="form-label fw-bold">分潤短網址 (Affiliate Link) *</label>
+                <input type="url" class="form-control" id="new-link" placeholder="https://s.shopee.tw/..." required>
+              </div>
+
+              <div class="col-12 pt-3">
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold fs-6">
+                  <i class="fa-solid fa-cloud-arrow-up me-2"></i>寫入 Firebase 資料庫
+                </button>
+              </div>
             </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 頁籤 3：系統操作日誌 -->
+    <div id="pane-logs" class="tab-content-panel d-none">
+      <div class="panel-card">
+        <div class="panel-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0 fw-bold"><i class="fa-solid fa-list-ol me-2 text-primary"></i>系統即時 Log 紀錄</h5>
+          <button class="btn btn-outline-secondary btn-sm" onclick="clearLogConsole()">清空紀錄</button>
+        </div>
+        <div class="card-body">
+          <div id="log-console" class="bg-dark text-light p-3 rounded-3 font-monospace fs-7" style="height: 350px; overflow-y: auto;">
+            <p class="text-muted mb-1">[SYSTEM] 後台初始化完成，等待解鎖...</p>
           </div>
         </div>
       </div>
-
     </div>
 
   </div>
@@ -438,7 +444,7 @@
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
         <div class="modal-header border-bottom-0 pb-0">
-          <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i>修改目標連結</h5>
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i>修改分潤目標連結</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body py-3">
@@ -448,7 +454,7 @@
             <div id="edit-name" class="fw-bold text-dark full-text-display"></div>
           </div>
           <div class="mb-2">
-            <label for="edit-link" class="form-label text-muted fw-bold fs-7 mb-1">目標導向網址</label>
+            <label for="edit-link" class="form-label text-muted fw-bold fs-7 mb-1">目標導向網址 (蝦皮分潤短網址)</label>
             <textarea id="edit-link" class="form-control" rows="3" placeholder="https://s.shopee.tw/..."></textarea>
           </div>
         </div>
@@ -460,19 +466,21 @@
     </div>
   </div>
 
-  <footer>
-    <div class="container text-center">
-      <p class="mb-0 text-muted">© 2026 Yves Shop Admin System.</p>
+  <!-- 頁尾 -->
+  <footer class="text-center bg-white border-top">
+    <div class="container">
+      <p class="mb-0 text-muted">© 2026 Yves Shop Admin System. All rights reserved.</p>
     </div>
   </footer>
 
-  <!-- 載入必要 SDK -->
+  <!-- Bootstrap 5.3 JS Bundle -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/bootstrap.bundle.min.js"></script>
+  <!-- Firebase 8.10.1 SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    //預設管理員密碼：admin123 (可自行更換)
+    // 預設密碼：admin123
     const ADMIN_PASSWORD = "admin123";
 
     const firebaseConfig = {
@@ -487,28 +495,40 @@
     let globalProductsData = [];
     let modalInstance = null;
 
-    // 驗證密碼邏輯
+    // 1. 解鎖驗證邏輯
     function verifyAdminPassword(e) {
       e.preventDefault();
       const inputPass = document.getElementById('admin-pass-input').value;
       if (inputPass === ADMIN_PASSWORD) {
-        document.getElementById('auth-overlay').style.display = 'none';
+        document.getElementById('auth-overlay').style.setProperty('display', 'none', 'important');
+        appendLog('解鎖成功：進入管理員後台模式', 'SUCCESS');
         refreshDatabaseData();
       } else {
-        alert('密碼錯誤，請重新輸入！');
+        alert('密碼錯誤！請重新輸入');
       }
+    }
+
+    // 2. 原生頁籤切換 (徹底解決切換按鈕無反應問題)
+    function switchTab(panelId, btnId) {
+      document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.add('d-none'));
+      document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+      document.getElementById(panelId).classList.remove('d-none');
+      document.getElementById(btnId).classList.add('active');
+      appendLog(`切換檢視頁籤: ${panelId}`, 'INFO');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
       modalInstance = new bootstrap.Modal(document.getElementById('editModal'));
     });
 
+    // 3. 系統操作日誌 Log
     function appendLog(msg, type = 'INFO') {
       const consoleBox = document.getElementById('log-console');
       if (!consoleBox) return;
       const timeStr = new Date().toLocaleTimeString();
       const logLine = document.createElement('p');
-      logLine.className = `mb-1 ${type === 'ERROR' ? 'text-danger' : type === 'SUCCESS' ? 'text-success' : 'text-info'}`;
+      logLine.className = `mb-1 ${type === 'ERROR' ? 'text-danger' : type === 'SUCCESS' ? 'text-success' : type === 'WARN' ? 'text-warning' : 'text-info'}`;
       logLine.innerText = `[${timeStr}] [${type}] ${msg}`;
       consoleBox.appendChild(logLine);
       consoleBox.scrollTop = consoleBox.scrollHeight;
@@ -516,17 +536,29 @@
 
     function clearLogConsole() {
       document.getElementById('log-console').innerHTML = '';
+      appendLog('控制台日誌已清空', 'INFO');
     }
 
+    // 4. 讀取與渲染 Firebase 資料
     function refreshDatabaseData() {
       const tbody = document.getElementById('product-table-body');
-      tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div>載入資料庫中...</td></tr>`;
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-5 text-muted">
+            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+            正在載入 Firebase 資料庫...
+          </td>
+        </tr>
+      `;
 
       db.ref('yves_shop_data/products').once('value', (snapshot) => {
         const rawData = snapshot.val();
+        tbody.innerHTML = '';
+
         if (!rawData) {
-          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">無商品資料</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-5 text-muted">目前資料庫內無任何商品。</td></tr>';
           updateDashboardMetrics(0, 0, '無', 0);
+          appendLog('讀取完成：目前為空資料庫', 'WARN');
           return;
         }
 
@@ -535,7 +567,10 @@
           : Object.entries(rawData);
 
         renderProductTable(globalProductsData);
-        appendLog(`載入完成，共 ${globalProductsData.length} 項商品`, 'SUCCESS');
+        appendLog(`載入完成：共讀取 ${globalProductsData.length} 項商品`, 'SUCCESS');
+      }, (err) => {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center py-5 text-danger">讀取失敗：${err.message}</td></tr>`;
+        appendLog(`Firebase 讀取失敗: ${err.message}`, 'ERROR');
       });
     }
 
@@ -558,21 +593,40 @@
           topItem = { name: product.name, clicks: clicks };
         }
 
-        const safeName = escapeHtml(product.name || '');
+        const safeName = escapeHtml(product.name || '未命名商品');
         const safeLink = escapeHtml(product.link || '#');
-        const imgUrl = product.image || 'https://via.placeholder.com/100';
+        const imgUrl = product.image || 'https://via.placeholder.com/100?text=No+Image';
+        const category = product.category || '熱門爆款';
 
         const row = `
           <tr>
             <td class="ps-4 text-muted fw-bold">#${idx + 1}</td>
-            <td><img src="${imgUrl}" class="product-thumbnail" onerror="this.src='https://via.placeholder.com/100'"></td>
-            <td><div class="fw-bold text-dark full-text-display">${safeName}</div></td>
-            <td><div class="fw-bold text-danger">NT$ ${product.promoPrice || 0}</div></td>
-            <td><span class="badge-click-count"><i class="fa-solid fa-arrow-pointer me-1"></i>${clicks} 次</span></td>
-            <td><a href="${safeLink}" target="_blank" class="text-muted fs-7 text-truncate d-inline-block" style="max-width: 160px;">${safeLink}</a></td>
+            <td>
+              <img src="${imgUrl}" class="product-thumbnail" alt="縮圖" onerror="this.src='https://via.placeholder.com/100?text=Error'">
+            </td>
+            <td>
+              <span class="badge-platform me-1">${category}</span>
+              <div class="fw-bold text-dark full-text-display mt-1">${safeName}</div>
+            </td>
+            <td>
+              <div class="fw-bold text-danger">NT$ ${product.promoPrice || 0}</div>
+              ${product.originalPrice ? `<small class="text-muted text-decoration-line-through">NT$ ${product.originalPrice}</small>` : ''}
+            </td>
+            <td>
+              <span class="badge-click-count"><i class="fa-solid fa-arrow-pointer me-1"></i>${clicks} 次</span>
+            </td>
+            <td>
+              <a href="${safeLink}" target="_blank" class="text-decoration-none text-truncate d-inline-block text-muted fs-7" style="max-width: 180px;">
+                ${safeLink}
+              </a>
+            </td>
             <td class="text-end pe-4">
-              <button class="btn btn-outline-primary btn-sm me-1" onclick="openEditModal('${key}', '${safeName}', '${safeLink}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-outline-danger btn-sm" onclick="deleteProduct('${key}')"><i class="fa-solid fa-trash"></i></button>
+              <button class="btn btn-outline-primary btn-sm me-1" onclick="openEditModal('${key}', '${safeName}', '${safeLink}')">
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn btn-outline-danger btn-sm" onclick="deleteProduct('${key}')">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </td>
           </tr>
         `;
@@ -591,6 +645,7 @@
       document.getElementById('item-count-badge').innerText = `${count} 項`;
     }
 
+    // 5. 搜尋與分類過濾
     function filterProducts() {
       const keyword = document.getElementById('search-input').value.toLowerCase().trim();
       const selectedCategory = document.getElementById('category-filter').value;
@@ -605,6 +660,52 @@
       renderProductTable(filtered);
     }
 
+    // 6. 手動新增商品
+    function handleManualAddProduct(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('new-name').value.trim();
+      const category = document.getElementById('new-category').value;
+      const badge = document.getElementById('new-badge').value.trim() || 'HOT';
+      const origPrice = parseInt(document.getElementById('new-orig-price').value) || 0;
+      const promoPrice = parseInt(document.getElementById('new-promo-price').value) || 0;
+      const image = document.getElementById('new-image').value.trim();
+      const link = document.getElementById('new-link').value.trim();
+
+      const newProductObj = {
+        id: Date.now(),
+        name: name,
+        category: category,
+        badge: badge,
+        originalPrice: origPrice,
+        promoPrice: promoPrice,
+        image: image,
+        link: link,
+        platform: "SHOPEE",
+        clicks: 0
+      };
+
+      db.ref('yves_shop_data/products').once('value', (snapshot) => {
+        let currentList = snapshot.val() || [];
+        if (!Array.isArray(currentList)) {
+          currentList = [];
+        }
+        currentList.unshift(newProductObj);
+
+        db.ref('yves_shop_data/products').set(currentList).then(() => {
+          alert('✅ 商品已上架至 Firebase！');
+          appendLog(`新增商品成功: ${name}`, 'SUCCESS');
+          document.getElementById('add-product-form').reset();
+          switchTab('pane-manage', 'btn-tab-manage');
+          refreshDatabaseData();
+        }).catch((err) => {
+          alert('❌ 上架失敗：' + err.message);
+          appendLog(`新增商品失敗: ${err.message}`, 'ERROR');
+        });
+      });
+    }
+
+    // 7. 編輯與刪除商品
     function openEditModal(key, name, link) {
       document.getElementById('edit-key').value = key;
       document.getElementById('edit-name').innerText = name;
@@ -616,54 +717,84 @@
       const key = document.getElementById('edit-key').value;
       const newLink = document.getElementById('edit-link').value.trim();
 
+      if (!newLink) {
+        alert('請輸入網址！');
+        return;
+      }
+
       db.ref(`yves_shop_data/products/${key}/link`).set(newLink).then(() => {
-        alert('連結更新成功！');
+        alert('✅ 連結已更新！');
+        appendLog(`更新 Key [${key}] 連結至 ${newLink}`, 'SUCCESS');
         modalInstance.hide();
         refreshDatabaseData();
+      }).catch((err) => {
+        alert('修改失敗：' + err.message);
       });
     }
 
     function deleteProduct(key) {
       if (confirm('確定要刪除這項商品嗎？')) {
         db.ref(`yves_shop_data/products/${key}`).remove().then(() => {
-          alert('已成功刪除！');
+          alert('✅ 已成功刪除！');
+          appendLog(`刪除商品 Key [${key}]`, 'WARN');
           refreshDatabaseData();
+        }).catch((err) => {
+          alert('刪除失敗：' + err.message);
         });
       }
     }
 
     function batchResetClicks() {
-      if (confirm('確定歸零所有點擊數嗎？')) {
+      if (confirm('⚠️ 警告：確定要把所有商品的點擊數字歸零嗎？')) {
         db.ref('yves_shop_data/products').once('value', (snapshot) => {
           const data = snapshot.val();
           if (!data) return;
+
           if (Array.isArray(data)) {
             data.forEach((p) => { if (p) p.clicks = 0; });
           } else {
             Object.keys(data).forEach((k) => { if (data[k]) data[k].clicks = 0; });
           }
+
           db.ref('yves_shop_data/products').set(data).then(() => {
-            alert('點擊數已重置！');
+            alert('✅ 點擊數已全部歸零！');
+            appendLog('點擊數字完成歸零重置', 'WARN');
             refreshDatabaseData();
           });
         });
       }
     }
 
+    // 8. CSV 匯出功能
     function exportToCSV() {
-      let csvContent = "data:text/csv;charset=utf-8,\uFEFFID,品名,價格,點擊數,連結\n";
+      if (!globalProductsData || globalProductsData.length === 0) {
+        alert('無資料可供匯出！');
+        return;
+      }
+
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFFID,品名,分類,原價,特價,點擊數,連結\n";
       globalProductsData.forEach(([key, p]) => {
         if (!p) return;
-        csvContent += `"${key}","${(p.name||'').replace(/"/g, '""')}",${p.promoPrice||0},${p.clicks||0},"${p.link||''}"\n`;
+        csvContent += `"${key}","${(p.name || '').replace(/"/g, '""')}","${p.category || '熱門爆款'}",${p.originalPrice || 0},${p.promoPrice || 0},${p.clicks || 0},"${p.link || ''}"\n`;
       });
+
+      const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");
-      link.href = encodeURI(csvContent);
+      link.href = encodedUri;
       link.download = `yves_products_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(link);
       link.click();
+      document.body.removeChild(link);
+      appendLog('已成功匯出 CSV 檔', 'SUCCESS');
     }
 
     function escapeHtml(str) {
-      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
     }
   </script>
 </body>
