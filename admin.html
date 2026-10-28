@@ -24,7 +24,7 @@
       min-height: 100vh;
     }
 
-    /* 全螢幕身分驗證遮罩鎖 */
+    /* 身分驗證遮罩鎖 */
     #auth-overlay {
       position: fixed;
       top: 0;
@@ -91,7 +91,7 @@
       flex-shrink: 0;
     }
 
-    /* 文字完全顯示，不裁切號 */
+    /* 文字完整顯示（不不裁切截斷） */
     .full-text-display {
       word-break: break-word;
       white-space: normal;
@@ -158,9 +158,10 @@
       color: #dc2626;
       border: 1px dashed #fca5a5;
       font-weight: 700;
-      font-size: 0.82rem;
-      padding: 4px 8px;
+      font-size: 0.85rem;
+      padding: 5px 10px;
       border-radius: 6px;
+      display: inline-block;
     }
 
     .badge-platform {
@@ -203,7 +204,7 @@
 </head>
 <body class="d-flex flex-column">
 
-  <!-- 1. 後台身分驗證遮罩（隱藏預設密碼字樣） -->
+  <!-- 身分驗證遮罩鎖 (密碼: 520490) -->
   <div id="auth-overlay">
     <div class="card p-4 shadow-lg border-0" style="max-width: 400px; width: 90%; border-radius: 16px;">
       <div class="text-center mb-3">
@@ -228,10 +229,13 @@
         <span class="brand-title">Yves 嚴選特惠後台</span>
       </a>
 
-      <!-- 原生切換頁籤按鈕 -->
+      <!-- 頂部切換頁籤按鈕 -->
       <div class="d-flex align-items-center me-auto gap-2">
         <button class="nav-btn active" id="btn-tab-manage" onclick="switchTab('pane-manage', 'btn-tab-manage')">
           <i class="fa-solid fa-boxes-packing me-1"></i> 商品管理
+        </button>
+        <button class="nav-btn" id="btn-tab-coupons" onclick="switchTab('pane-coupons', 'btn-tab-coupons')">
+          <i class="fa-solid fa-ticket me-1"></i> 優惠券清單
         </button>
         <button class="nav-btn" id="btn-tab-add" onclick="switchTab('pane-add', 'btn-tab-add')">
           <i class="fa-solid fa-plus-circle me-1"></i> 手動上架
@@ -255,7 +259,7 @@
   <!-- 主要內容區域 -->
   <div class="container-fluid px-4 py-4 flex-grow-1">
 
-    <!-- 頂部四項核心數據卡片 -->
+    <!-- 頂部核心數據卡片 -->
     <div class="row g-3 mb-4">
       <div class="col-12 col-sm-6 col-xl-3">
         <div class="metric-card primary p-3">
@@ -285,7 +289,6 @@
         </div>
       </div>
 
-      <!-- 點擊冠軍（文字完整顯示） -->
       <div class="col-12 col-sm-6 col-xl-3">
         <div class="metric-card warning p-3">
           <div class="d-flex align-items-center justify-content-between gap-2">
@@ -304,11 +307,11 @@
         <div class="metric-card danger p-3">
           <div class="d-flex align-items-center justify-content-between">
             <div>
-              <p class="text-muted mb-1 fw-bold fs-7">平均轉換估算點擊</p>
-              <h2 id="metric-avg-clicks" class="fw-bold mb-0 text-danger">0</h2>
+              <p class="text-muted mb-1 fw-bold fs-7">已設定優惠券商品數</p>
+              <h2 id="metric-total-coupons" class="fw-bold mb-0 text-danger">0</h2>
             </div>
             <div class="metric-icon-box bg-danger bg-opacity-10 text-danger">
-              <i class="fa-solid fa-bullseye"></i>
+              <i class="fa-solid fa-ticket"></i>
             </div>
           </div>
         </div>
@@ -327,7 +330,7 @@
           <div class="d-flex flex-wrap align-items-center gap-2">
             <div class="input-group input-group-sm" style="width: 200px;">
               <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
-              <input type="text" id="search-input" class="form-control border-start-0" placeholder="搜尋商品或折價券..." onkeyup="filterProducts()">
+              <input type="text" id="search-input" class="form-control border-start-0" placeholder="搜尋商品名稱..." onkeyup="filterProducts()">
             </div>
 
             <select id="category-filter" class="form-select form-select-sm" style="width: 120px;" onchange="filterProducts()">
@@ -354,7 +357,7 @@
                 <th class="ps-4" style="width: 60px;">序號</th>
                 <th style="width: 80px;">縮圖</th>
                 <th>商品名稱 / 分類</th>
-                <th style="width: 130px;">🎟️ 優惠卷折扣碼</th>
+                <th style="width: 140px;">🎟️ 優惠券折扣碼</th>
                 <th style="width: 120px;">原價 / 特價</th>
                 <th style="width: 130px;">📊 累積點擊</th>
                 <th>蝦皮分潤導向網址</th>
@@ -373,7 +376,44 @@
       </div>
     </div>
 
-    <!-- 頁籤 2：手動上架表單 -->
+    <!-- 頁籤 2：專屬優惠券清單 -->
+    <div id="pane-coupons" class="tab-content-panel d-none">
+      <div class="panel-card">
+        <div class="panel-header d-flex flex-wrap align-items-center justify-content-between gap-3">
+          <div class="d-flex align-items-center gap-2">
+            <h5 class="mb-0 fw-bold text-danger"><i class="fa-solid fa-ticket me-2"></i>站內活躍優惠券折扣碼總覽</h5>
+            <span class="badge bg-danger rounded-pill" id="coupon-count-badge">0 組</span>
+          </div>
+
+          <div class="input-group input-group-sm" style="width: 250px;">
+            <span class="input-group-text bg-white border-end-0"><i class="fa-solid fa-magnifying-glass text-muted"></i></span>
+            <input type="text" id="coupon-search-input" class="form-control border-start-0" placeholder="搜尋折扣碼或商品..." onkeyup="filterCoupons()">
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table custom-table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th class="ps-4" style="width: 60px;">項次</th>
+                <th style="width: 160px;">🎟️ 折扣碼 (Code)</th>
+                <th>對應商品名稱</th>
+                <th style="width: 120px;">優惠價格</th>
+                <th style="width: 130px;">點擊熱度</th>
+                <th class="text-end pe-4" style="width: 140px;">快速操作</th>
+              </tr>
+            </thead>
+            <tbody id="coupon-table-body">
+              <tr>
+                <td colspan="6" class="text-center py-5 text-muted">資料載入中...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- 頁籤 3：手動上架表單 -->
     <div id="pane-add" class="tab-content-panel d-none">
       <div class="panel-card mx-auto" style="max-width: 750px;">
         <div class="panel-header">
@@ -403,7 +443,7 @@
               </div>
 
               <div class="col-md-6">
-                <label for="new-code" class="form-label fw-bold">🎟️ 專屬優惠卷折扣碼</label>
+                <label for="new-code" class="form-label fw-bold">🎟️ 專屬優惠券折扣碼</label>
                 <input type="text" class="form-control" id="new-code" placeholder="例如：YVES88">
               </div>
 
@@ -438,7 +478,7 @@
       </div>
     </div>
 
-    <!-- 頁籤 3：系統操作日誌 -->
+    <!-- 頁籤 4：系統操作日誌 -->
     <div id="pane-logs" class="tab-content-panel d-none">
       <div class="panel-card">
         <div class="panel-header d-flex justify-content-between align-items-center">
@@ -455,12 +495,12 @@
 
   </div>
 
-  <!-- 編輯商品 Modal（新增優惠卷編輯） -->
+  <!-- 編輯商品與優惠券 Modal -->
   <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
         <div class="modal-header border-bottom-0 pb-0">
-          <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i>修改商品資料與連結</h5>
+          <h5 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square text-primary me-2"></i>修改商品與優惠券資料</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body py-3">
@@ -470,8 +510,8 @@
             <div id="edit-name" class="fw-bold text-dark full-text-display"></div>
           </div>
           <div class="mb-3">
-            <label for="edit-code" class="form-label text-muted fw-bold fs-7 mb-1">🎟️ 優惠卷折扣碼 (Coupon Code)</label>
-            <input type="text" id="edit-code" class="form-control" placeholder="無優惠卷則留空">
+            <label for="edit-code" class="form-label text-muted fw-bold fs-7 mb-1">🎟️ 優惠券折扣碼 (Coupon Code)</label>
+            <input type="text" id="edit-code" class="form-control" placeholder="無優惠券則留空">
           </div>
           <div class="mb-2">
             <label for="edit-link" class="form-label text-muted fw-bold fs-7 mb-1">目標導向網址 (蝦皮分潤短網址)</label>
@@ -500,7 +540,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    // 密碼更新為：520490
+    // 密碼：520490
     const ADMIN_PASSWORD = "520490";
 
     const firebaseConfig = {
@@ -578,7 +618,7 @@
         if (!rawData) {
           tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted">目前資料庫內無任何商品。</td></tr>';
           updateDashboardMetrics(0, 0, '無', 0);
-          appendLog('讀取完成：目前為空資料庫', 'WARN');
+          renderCouponTable([]);
           return;
         }
 
@@ -587,6 +627,7 @@
           : Object.entries(rawData);
 
         renderProductTable(globalProductsData);
+        renderCouponTable(globalProductsData);
         appendLog(`載入完成：共讀取 ${globalProductsData.length} 項商品`, 'SUCCESS');
       }, (err) => {
         tbody.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-danger">讀取失敗：${err.message}</td></tr>`;
@@ -594,6 +635,7 @@
       });
     }
 
+    // 渲染商品管理表格
     function renderProductTable(entries) {
       const tbody = document.getElementById('product-table-body');
       tbody.innerHTML = '';
@@ -601,6 +643,7 @@
       let totalClicks = 0;
       let topItem = { name: '無', clicks: -1 };
       let validCount = 0;
+      let couponCount = 0;
 
       entries.forEach(([key, product], idx) => {
         if (!product) return;
@@ -608,6 +651,10 @@
 
         const clicks = product.clicks || 0;
         totalClicks += clicks;
+
+        if (product.code && product.code.trim() !== '') {
+          couponCount++;
+        }
 
         if (clicks > topItem.clicks) {
           topItem = { name: product.name, clicks: clicks };
@@ -659,19 +706,55 @@
         tbody.innerHTML += row;
       });
 
-      const avgClicks = validCount > 0 ? (totalClicks / validCount).toFixed(1) : 0;
-      updateDashboardMetrics(validCount, totalClicks, topItem.name, avgClicks);
+      updateDashboardMetrics(validCount, totalClicks, topItem.name, couponCount);
     }
 
-    function updateDashboardMetrics(count, clicks, topName, avg) {
+    // 渲染專屬優惠券表格
+    function renderCouponTable(entries) {
+      const tbody = document.getElementById('coupon-table-body');
+      tbody.innerHTML = '';
+
+      const couponEntries = entries.filter(([key, p]) => p && p.code && p.code.trim() !== '');
+
+      document.getElementById('coupon-count-badge').innerText = `${couponEntries.length} 組`;
+
+      if (couponEntries.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-5 text-muted">目前暫無綁定優惠券的商品</td></tr>';
+        return;
+      }
+
+      couponEntries.forEach(([key, product], idx) => {
+        const safeName = escapeHtml(product.name || '');
+        const safeCode = escapeHtml(product.code || '');
+        const clicks = product.clicks || 0;
+
+        const row = `
+          <tr>
+            <td class="ps-4 text-muted fw-bold">#${idx + 1}</td>
+            <td><span class="badge-coupon fs-6"><i class="fa-solid fa-ticket me-1"></i>${safeCode}</span></td>
+            <td><div class="fw-bold text-dark full-text-display">${safeName}</div></td>
+            <td class="text-danger fw-bold">NT$ ${product.promoPrice || 0}</td>
+            <td><span class="badge-click-count">${clicks} 次點擊</span></td>
+            <td class="text-end pe-4">
+              <button class="btn btn-outline-secondary btn-sm" onclick="copyToClipboard('${safeCode}')">
+                <i class="fa-solid fa-copy me-1"></i>複製
+              </button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function updateDashboardMetrics(count, clicks, topName, couponCount) {
       document.getElementById('metric-total-items').innerText = count;
       document.getElementById('metric-total-clicks').innerText = clicks;
       document.getElementById('metric-top-item').innerText = topName;
-      document.getElementById('metric-avg-clicks').innerText = avg;
+      document.getElementById('metric-total-coupons').innerText = couponCount;
       document.getElementById('item-count-badge').innerText = `${count} 項`;
     }
 
-    // 5. 搜尋與分類過濾（支援搜尋優惠卷折扣碼）
+    // 5. 搜尋與過濾
     function filterProducts() {
       const keyword = document.getElementById('search-input').value.toLowerCase().trim();
       const selectedCategory = document.getElementById('category-filter').value;
@@ -685,6 +768,17 @@
       });
 
       renderProductTable(filtered);
+    }
+
+    function filterCoupons() {
+      const keyword = document.getElementById('coupon-search-input').value.toLowerCase().trim();
+      const filtered = globalProductsData.filter(([key, product]) => {
+        if (!product || !product.code) return false;
+        const nameMatch = (product.name || '').toLowerCase().includes(keyword);
+        const codeMatch = (product.code || '').toLowerCase().includes(keyword);
+        return nameMatch || codeMatch;
+      });
+      renderCouponTable(filtered);
     }
 
     // 6. 手動新增商品
@@ -722,7 +816,7 @@
         currentList.unshift(newProductObj);
 
         db.ref('yves_shop_data/products').set(currentList).then(() => {
-          alert('✅ 商品與優惠卷已成功寫入 Firebase！');
+          alert('✅ 商品與優惠券已成功寫入 Firebase！');
           appendLog(`新增商品成功: ${name} (折扣碼: ${code || '無'})`, 'SUCCESS');
           document.getElementById('add-product-form').reset();
           switchTab('pane-manage', 'btn-tab-manage');
@@ -759,7 +853,7 @@
       };
 
       db.ref().update(updates).then(() => {
-        alert('✅ 商品資料與優惠卷已成功更新！');
+        alert('✅ 商品資料與優惠券已成功更新！');
         appendLog(`更新 Key [${key}] - 折扣碼: ${newCode || '無'}, 連結: ${newLink}`, 'SUCCESS');
         modalInstance.hide();
         refreshDatabaseData();
@@ -801,14 +895,21 @@
       }
     }
 
-    // 8. CSV 匯出功能（包含優惠卷欄位）
+    // 一鍵複製折扣碼
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert('✅ 折扣碼 ' + text + ' 已成功複製到剪貼簿！');
+      });
+    }
+
+    // 8. CSV 匯出功能
     function exportToCSV() {
       if (!globalProductsData || globalProductsData.length === 0) {
         alert('無資料可供匯出！');
         return;
       }
 
-      let csvContent = "data:text/csv;charset=utf-8,\uFEFFID,品名,分類,優惠卷折扣碼,原價,特價,點擊數,連結\n";
+      let csvContent = "data:text/csv;charset=utf-8,\uFEFFID,品名,分類,優惠券折扣碼,原價,特價,點擊數,連結\n";
       globalProductsData.forEach(([key, p]) => {
         if (!p) return;
         csvContent += `"${key}","${(p.name || '').replace(/"/g, '""')}","${p.category || '熱門爆款'}","${p.code || ''}",${p.originalPrice || 0},${p.promoPrice || 0},${p.clicks || 0},"${p.link || ''}"\n`;
@@ -821,7 +922,7 @@
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      appendLog('已成功匯出含優惠卷之 CSV 檔', 'SUCCESS');
+      appendLog('已成功匯出含優惠券之 CSV 檔', 'SUCCESS');
     }
 
     function escapeHtml(str) {
