@@ -24,7 +24,7 @@
       min-height: 100vh;
     }
 
-    /* 身分驗證遮罩鎖 */
+    /* 全螢幕身分驗證遮罩鎖 */
     #auth-overlay {
       position: fixed;
       top: 0;
@@ -91,7 +91,7 @@
       flex-shrink: 0;
     }
 
-    /* 文字完整顯示（不不裁切截斷） */
+    /* 文字完全顯示，決不裁切強加省略號 */
     .full-text-display {
       word-break: break-word;
       white-space: normal;
@@ -204,7 +204,7 @@
 </head>
 <body class="d-flex flex-column">
 
-  <!-- 身分驗證遮罩鎖 (密碼: 520490) -->
+  <!-- 1. 後台身分驗證解鎖遮罩 -->
   <div id="auth-overlay">
     <div class="card p-4 shadow-lg border-0" style="max-width: 400px; width: 90%; border-radius: 16px;">
       <div class="text-center mb-3">
@@ -229,7 +229,7 @@
         <span class="brand-title">Yves 嚴選特惠後台</span>
       </a>
 
-      <!-- 頂部切換頁籤按鈕 -->
+      <!-- 原生切換頁籤按鈕 (防範 Bootstrap JS 卡死) -->
       <div class="d-flex align-items-center me-auto gap-2">
         <button class="nav-btn active" id="btn-tab-manage" onclick="switchTab('pane-manage', 'btn-tab-manage')">
           <i class="fa-solid fa-boxes-packing me-1"></i> 商品管理
@@ -259,7 +259,7 @@
   <!-- 主要內容區域 -->
   <div class="container-fluid px-4 py-4 flex-grow-1">
 
-    <!-- 頂部核心數據卡片 -->
+    <!-- 頂部四項核心數據卡片 -->
     <div class="row g-3 mb-4">
       <div class="col-12 col-sm-6 col-xl-3">
         <div class="metric-card primary p-3">
@@ -289,6 +289,7 @@
         </div>
       </div>
 
+      <!-- 點擊冠軍（文字完全顯示不截斷） -->
       <div class="col-12 col-sm-6 col-xl-3">
         <div class="metric-card warning p-3">
           <div class="d-flex align-items-center justify-content-between gap-2">
@@ -540,7 +541,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    // 密碼：520490
+    // 管理員解鎖密碼：520490
     const ADMIN_PASSWORD = "520490";
 
     const firebaseConfig = {
